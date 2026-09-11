@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, History as HistoryIcon, MoreVertical, Copy, Trash2, Pencil, Play, Folder, FolderPlus, X, Sparkles, Timer } from 'lucide-react'
+import { Plus, History as HistoryIcon, MoreVertical, Copy, Trash2, Pencil, Play, Folder, FolderPlus, ChevronRight, X, Sparkles } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
+import type { RoutineStats } from '../store/useWorkoutStore'
 import { formatVolume, relativeDate } from '../lib/format'
 import Sheet from '../components/Sheet'
 import ConfirmDialog from '../components/ConfirmDialog'
 import TimerSheet from '../components/TimerSheet'
+import TimerHeaderButton from '../components/TimerHeaderButton'
 import type { Routine, RoutineFolder } from '../types'
+
+const UNFILED_KEY = '__unfiled__'
 
 export default function WorkoutHome() {
   const navigate = useNavigate()
@@ -28,6 +32,16 @@ export default function WorkoutHome() {
   const [timerSheetOpen, setTimerSheetOpen] = useState(false)
   const [deleteFolderTarget, setDeleteFolderTarget] = useState<RoutineFolder | null>(null)
   const [deleteRoutineTarget, setDeleteRoutineTarget] = useState<Routine | null>(null)
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set())
+
+  function toggleFolderCollapsed(id: string) {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function handleQuickStart() {
     if (!activeWorkout) startEmptyWorkout()
@@ -44,13 +58,7 @@ export default function WorkoutHome() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Workout</h1>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setTimerSheetOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-white/70"
-            aria-label="Timer & Stopwatch"
-          >
-            <Timer size={18} />
-          </button>
+          <TimerHeaderButton onOpen={() => setTimerSheetOpen(true)} />
           <button
             onClick={() => navigate('/workout/history')}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-white/70"
@@ -86,32 +94,6 @@ export default function WorkoutHome() {
         </div>
       </div>
 
-      {folders.length > 0 && (
-        <div className="mb-4 space-y-2">
-          {folders.map((f) => {
-            const count = routines.filter((r) => r.folderId === f.id).length
-            return (
-              <div key={f.id} className="flex items-center justify-between rounded-xl bg-surface-higher px-3.5 py-3">
-                <div className="flex items-center gap-2.5">
-                  <Folder size={16} style={{ color: f.colorHex }} />
-                  <span className="text-sm font-bold">{f.name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-white/40">{count} routine{count === 1 ? '' : 's'}</span>
-                  <button
-                    onClick={() => setDeleteFolderTarget(f)}
-                    className="text-white/30"
-                    aria-label={`Delete folder ${f.name}`}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
       {routines.length === 0 ? (
         <div className="mb-8 rounded-xl border border-dashed border-surface-border px-4 py-8 text-center">
           <p className="text-sm text-white/50">No routines yet.</p>
@@ -126,80 +108,113 @@ export default function WorkoutHome() {
           )}
         </div>
       ) : (
-        <ul className="mb-8 space-y-3">
-          {routines.map((r) => {
-            const folder = folders.find((f) => f.id === r.folderId)
-            const stats = getRoutineStats(r.id)
+        <div className="mb-8 space-y-3">
+          {folders.map((f) => {
+            const folderRoutines = routines.filter((r) => r.folderId === f.id)
+            const collapsed = collapsedFolders.has(f.id)
             return (
-              <li key={r.id} className="rounded-xl bg-surface-raised p-4">
-                <div className="flex items-start justify-between">
-                  <button className="min-w-0 flex-1 text-left" onClick={() => navigate(`/workout/routine/${r.id}`)}>
-                    {folder && (
-                      <span
-                        className="mb-1 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold"
-                        style={{ backgroundColor: folder.colorHex + '26', color: folder.colorHex }}
-                      >
-                        {folder.name}
-                      </span>
-                    )}
-                    <p className="truncate text-sm font-bold">{r.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-white/40">
-                      Last performed: {stats.lastPerformedText} • ~{stats.estimatedDurationMinutes}m
-                    </p>
+              <div key={f.id}>
+                <div className="flex items-center justify-between rounded-xl bg-surface-higher px-3.5 py-3">
+                  <button
+                    onClick={() => toggleFolderCollapsed(f.id)}
+                    className="flex flex-1 items-center gap-2.5 text-left"
+                  >
+                    <ChevronRight size={14} className={`shrink-0 text-white/40 transition-transform ${collapsed ? '' : 'rotate-90'}`} />
+                    <Folder size={16} className="shrink-0" style={{ color: f.colorHex }} />
+                    <span className="truncate text-sm font-bold">{f.name}</span>
                   </button>
-                  <div className="relative">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-white/40">
+                      {folderRoutines.length} routine{folderRoutines.length === 1 ? '' : 's'}
+                    </span>
                     <button
-                      onClick={() => setMenuFor(menuFor === r.id ? null : r.id)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-white/50"
+                      onClick={() => setDeleteFolderTarget(f)}
+                      className="text-white/30"
+                      aria-label={`Delete folder ${f.name}`}
                     >
-                      <MoreVertical size={16} />
+                      <Trash2 size={13} />
                     </button>
-                    {menuFor === r.id && (
-                      <div className="absolute right-0 top-8 z-10 w-40 overflow-hidden rounded-lg bg-surface-higher shadow-xl ring-1 ring-white/10">
-                        <button
-                          onClick={() => {
-                            navigate(`/workout/routine/${r.id}`)
-                            setMenuFor(null)
-                          }}
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium"
-                        >
-                          <Pencil size={13} /> Edit
-                        </button>
-                        <button
-                          onClick={() => {
+                  </div>
+                </div>
+                {!collapsed && (
+                  folderRoutines.length === 0 ? (
+                    <p className="mt-2 pl-3 text-xs text-white/30">No routines in this folder yet.</p>
+                  ) : (
+                    <ul className="mt-2.5 space-y-2.5 pl-3">
+                      {folderRoutines.map((r) => (
+                        <RoutineCard
+                          key={r.id}
+                          routine={r}
+                          stats={getRoutineStats(r.id)}
+                          menuOpen={menuFor === r.id}
+                          onToggleMenu={() => setMenuFor(menuFor === r.id ? null : r.id)}
+                          onStart={() => handleStartRoutine(r.id)}
+                          onEdit={() => navigate(`/workout/routine/${r.id}`)}
+                          onDuplicate={() => {
                             duplicateRoutine(r.id)
                             setMenuFor(null)
                           }}
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium"
-                        >
-                          <Copy size={13} /> Duplicate
-                        </button>
-                        <button
-                          onClick={() => {
+                          onDelete={() => {
                             setDeleteRoutineTarget(r)
                             setMenuFor(null)
                           }}
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-red-400"
-                        >
-                          <Trash2 size={13} /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <p className="mt-2 truncate text-xs text-white/40">
-                  {r.exercises.length === 0 ? 'No exercises' : `${r.exercises.length} exercise${r.exercises.length > 1 ? 's' : ''}`}
-                </p>
-                <button
-                  onClick={() => handleStartRoutine(r.id)}
-                  className="mt-3 w-full rounded-lg bg-surface-higher py-2 text-xs font-bold text-accent"
-                >
-                  Start Routine
-                </button>
-              </li>
+                        />
+                      ))}
+                    </ul>
+                  )
+                )}
+              </div>
             )
           })}
-        </ul>
+
+          {(() => {
+            const unfiledRoutines = routines.filter((r) => !r.folderId || !folders.some((f) => f.id === r.folderId))
+            if (unfiledRoutines.length === 0) return null
+            const collapsed = collapsedFolders.has(UNFILED_KEY)
+            return (
+              <div>
+                {folders.length > 0 && (
+                  <button
+                    onClick={() => toggleFolderCollapsed(UNFILED_KEY)}
+                    className="flex w-full items-center justify-between rounded-xl bg-surface-higher px-3.5 py-3"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight size={14} className={`shrink-0 text-white/40 transition-transform ${collapsed ? '' : 'rotate-90'}`} />
+                      <Folder size={16} className="shrink-0 text-white/40" />
+                      <span className="text-sm font-bold text-white/60">No Folder</span>
+                    </div>
+                    <span className="text-xs text-white/40">
+                      {unfiledRoutines.length} routine{unfiledRoutines.length === 1 ? '' : 's'}
+                    </span>
+                  </button>
+                )}
+                {(folders.length === 0 || !collapsed) && (
+                  <ul className={`space-y-2.5 ${folders.length > 0 ? 'mt-2.5 pl-3' : ''}`}>
+                    {unfiledRoutines.map((r) => (
+                      <RoutineCard
+                        key={r.id}
+                        routine={r}
+                        stats={getRoutineStats(r.id)}
+                        menuOpen={menuFor === r.id}
+                        onToggleMenu={() => setMenuFor(menuFor === r.id ? null : r.id)}
+                        onStart={() => handleStartRoutine(r.id)}
+                        onEdit={() => navigate(`/workout/routine/${r.id}`)}
+                        onDuplicate={() => {
+                          duplicateRoutine(r.id)
+                          setMenuFor(null)
+                        }}
+                        onDelete={() => {
+                          setDeleteRoutineTarget(r)
+                          setMenuFor(null)
+                        }}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )
+          })()}
+        </div>
       )}
 
       <div className="mb-3 flex items-center justify-between">
@@ -265,6 +280,63 @@ export default function WorkoutHome() {
         onCancel={() => setDeleteRoutineTarget(null)}
       />
     </div>
+  )
+}
+
+function RoutineCard({
+  routine,
+  stats,
+  menuOpen,
+  onToggleMenu,
+  onStart,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: {
+  routine: Routine
+  stats: RoutineStats
+  menuOpen: boolean
+  onToggleMenu: () => void
+  onStart: () => void
+  onEdit: () => void
+  onDuplicate: () => void
+  onDelete: () => void
+}) {
+  return (
+    <li className="rounded-xl bg-surface-raised p-4">
+      <div className="flex items-start justify-between">
+        <button className="min-w-0 flex-1 text-left" onClick={onEdit}>
+          <p className="truncate text-sm font-bold">{routine.name}</p>
+          <p className="mt-0.5 truncate text-xs text-white/40">
+            Last performed: {stats.lastPerformedText} • ~{stats.estimatedDurationMinutes}m
+          </p>
+        </button>
+        <div className="relative">
+          <button onClick={onToggleMenu} className="flex h-7 w-7 items-center justify-center rounded-full text-white/50">
+            <MoreVertical size={16} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-8 z-10 w-40 overflow-hidden rounded-lg bg-surface-higher shadow-xl ring-1 ring-white/10">
+              <button onClick={onEdit} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium">
+                <Pencil size={13} /> Edit
+              </button>
+              <button onClick={onDuplicate} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium">
+                <Copy size={13} /> Duplicate
+              </button>
+              <button onClick={onDelete} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-medium text-red-400">
+                <Trash2 size={13} /> Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      <p className="mt-2 truncate text-xs text-white/40">
+        {routine.exercises.length === 0 ? 'No exercises' : `${routine.exercises.length} exercise${routine.exercises.length > 1 ? 's' : ''}`}
+      </p>
+      <button onClick={onStart} className="mt-3 w-full rounded-lg bg-surface-higher py-2 text-xs font-bold text-accent">
+        Start Routine
+      </button>
+    </li>
   )
 }
 

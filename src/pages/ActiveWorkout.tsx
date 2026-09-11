@@ -6,6 +6,8 @@ import ExercisePicker from '../components/ExercisePicker'
 import Sheet from '../components/Sheet'
 import ConfirmDialog from '../components/ConfirmDialog'
 import PRBadge from '../components/PRBadge'
+import TimerSheet from '../components/TimerSheet'
+import TimerHeaderButton from '../components/TimerHeaderButton'
 import type { SetType, WorkoutExerciseEntry } from '../types'
 import { formatDuration, formatWeight, toDatetimeLocalValue } from '../lib/format'
 
@@ -226,6 +228,7 @@ export default function ActiveWorkout() {
   const [noSetsWarning, setNoSetsWarning] = useState(false)
   const [discardConfirmOpen, setDiscardConfirmOpen] = useState(false)
   const [finishSheetOpen, setFinishSheetOpen] = useState(false)
+  const [timerSheetOpen, setTimerSheetOpen] = useState(false)
 
   const totalCompletedSets = useMemo(
     () => activeWorkout?.exercises.reduce((n, e) => n + e.sets.filter((s) => s.completed).length, 0) ?? 0,
@@ -254,9 +257,12 @@ export default function ActiveWorkout() {
   return (
     <div className="pb-8">
       <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-3 py-2.5">
-        <button onClick={() => navigate('/workout')} className="flex h-9 w-9 items-center justify-center text-white/70" aria-label="Minimize">
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => navigate('/workout')} className="flex h-9 w-9 items-center justify-center text-white/70" aria-label="Minimize">
+            <X size={20} />
+          </button>
+          <TimerHeaderButton onOpen={() => setTimerSheetOpen(true)} />
+        </div>
         <span className="text-sm font-bold text-white/70">
           <ElapsedTime startedAt={activeWorkout.startedAt} />
         </span>
@@ -301,6 +307,8 @@ export default function ActiveWorkout() {
       </div>
 
       <ExercisePicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={(ids) => ids.forEach(addExerciseToActive)} />
+
+      <TimerSheet open={timerSheetOpen} onClose={() => setTimerSheetOpen(false)} />
 
       <ConfirmDialog
         open={noSetsWarning}
