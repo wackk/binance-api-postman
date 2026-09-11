@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Plus, Trash2, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight, ChevronLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight, ChevronLeft } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { DAILY_AI_ROUTINE } from '../data/mobility'
 import type { BodyAreaScore, MobilityRoutine } from '../types'
@@ -21,14 +22,13 @@ function scaleRoutineDuration(routine: MobilityRoutine, targetMinutes: number): 
 }
 
 export default function Mobility() {
+  const navigate = useNavigate()
   const bodyAreaScores = useWorkoutStore((s) => s.bodyAreaScores)
   const assessmentCompletedAt = useWorkoutStore((s) => s.assessmentCompletedAt)
   const mobilityRoutines = useWorkoutStore((s) => s.mobilityRoutines)
-  const createMobilityRoutine = useWorkoutStore((s) => s.createMobilityRoutine)
   const deleteMobilityRoutine = useWorkoutStore((s) => s.deleteMobilityRoutine)
   const logMobilitySession = useWorkoutStore((s) => s.logMobilitySession)
 
-  const [createOpen, setCreateOpen] = useState(false)
   const [durationPickerFor, setDurationPickerFor] = useState<MobilityRoutine | null>(null)
   const [activeRoutine, setActiveRoutine] = useState<MobilityRoutine | null>(null)
   const [assessmentOpen, setAssessmentOpen] = useState(false)
@@ -111,7 +111,7 @@ export default function Mobility() {
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-base font-bold">Custom Sessions</h2>
         <button
-          onClick={() => setCreateOpen(true)}
+          onClick={() => navigate('/mobility/routine/new')}
           className="flex items-center gap-1 rounded-lg bg-surface-raised px-2.5 py-1.5 text-xs font-semibold text-emerald-400"
         >
           <Plus size={14} /> Create Routine
@@ -127,13 +127,22 @@ export default function Mobility() {
           {mobilityRoutines.map((r) => (
             <li key={r.id} className="rounded-xl bg-surface-raised p-4">
               <div className="flex items-start justify-between">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold">{r.title}</p>
                   <p className="text-xs text-white/50">{r.description}</p>
                 </div>
-                <button onClick={() => deleteMobilityRoutine(r.id)} className="text-red-400/80" aria-label="Delete routine">
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={() => navigate(`/mobility/routine/${r.id}`)}
+                    className="text-white/40"
+                    aria-label="Edit routine"
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button onClick={() => deleteMobilityRoutine(r.id)} className="text-red-400/80" aria-label="Delete routine">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-xs text-white/40">
@@ -150,8 +159,6 @@ export default function Mobility() {
           ))}
         </ul>
       )}
-
-      <CreateRoutineSheet open={createOpen} onClose={() => setCreateOpen(false)} onCreate={createMobilityRoutine} />
 
       <DurationPickerSheet
         routine={durationPickerFor}
@@ -208,58 +215,6 @@ function DurationPickerSheet({
             </button>
           ))}
         </div>
-      </div>
-    </Sheet>
-  )
-}
-
-function CreateRoutineSheet({
-  open,
-  onClose,
-  onCreate,
-}: {
-  open: boolean
-  onClose: () => void
-  onCreate: (title: string, description: string, durationMinutes: number) => void
-}) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [duration, setDuration] = useState('15')
-
-  function submit() {
-    if (!title.trim()) return
-    onCreate(title.trim(), description.trim(), Number(duration) || 15)
-    setTitle('')
-    setDescription('')
-    setDuration('15')
-    onClose()
-  }
-
-  return (
-    <Sheet open={open} onClose={onClose} title="New Custom Routine">
-      <div className="space-y-3 p-4">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Routine title"
-          className="w-full rounded-lg bg-surface-higher px-3 py-2.5 text-sm outline-none placeholder:text-white/30"
-        />
-        <input
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Focus / description"
-          className="w-full rounded-lg bg-surface-higher px-3 py-2.5 text-sm outline-none placeholder:text-white/30"
-        />
-        <input
-          type="number"
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-          placeholder="Duration (minutes)"
-          className="w-full rounded-lg bg-surface-higher px-3 py-2.5 text-sm outline-none placeholder:text-white/30"
-        />
-        <button onClick={submit} disabled={!title.trim()} className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold disabled:opacity-40">
-          Create Routine
-        </button>
       </div>
     </Sheet>
   )

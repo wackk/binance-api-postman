@@ -1,16 +1,19 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Trophy, ListChecks, History as HistoryIcon } from 'lucide-react'
+import { ArrowLeft, Trophy, ListChecks, History as HistoryIcon, Pencil } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { equipmentIcon, estOneRepMax, formatWeight, muscleColor, relativeDate } from '../lib/format'
 import PRBadge from '../components/PRBadge'
+import CreateExerciseSheet from '../components/CreateExerciseSheet'
 
 export default function ExerciseDetail() {
   const navigate = useNavigate()
   const { exerciseId } = useParams()
   const getExerciseById = useWorkoutStore((s) => s.getExerciseById)
+  const updateCustomExercise = useWorkoutStore((s) => s.updateCustomExercise)
   const history = useWorkoutStore((s) => s.history)
   const weightUnit = useWorkoutStore((s) => s.settings.weightUnit)
+  const [editOpen, setEditOpen] = useState(false)
 
   const exercise = exerciseId ? getExerciseById(exerciseId) : undefined
 
@@ -57,7 +60,16 @@ export default function ExerciseDetail() {
         <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center text-white/70">
           <ArrowLeft size={20} />
         </button>
-        <span className="truncate text-sm font-bold">{exercise.name}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-bold">{exercise.name}</span>
+        {exercise.isCustom && (
+          <button
+            onClick={() => setEditOpen(true)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-white/70"
+            aria-label="Edit exercise"
+          >
+            <Pencil size={16} />
+          </button>
+        )}
       </div>
 
       <div className="px-4">
@@ -156,6 +168,18 @@ export default function ExerciseDetail() {
           )}
         </div>
       </div>
+
+      {exercise.isCustom && (
+        <CreateExerciseSheet
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          initial={exercise}
+          onSave={(payload) => {
+            updateCustomExercise(exercise.id, payload)
+            setEditOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -149,7 +149,7 @@ export default function ExercisePicker({
       <CreateExerciseSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreate={(payload) => {
+        onSave={(payload) => {
           const created = addCustomExercise(payload)
           setCreateOpen(false)
           toggle(created.id)

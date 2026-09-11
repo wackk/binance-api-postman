@@ -12,6 +12,7 @@ import {
   Ruler,
   CalendarDays,
   Flame,
+  DatabaseBackup,
 } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import type { ActivityMetric } from '../store/useWorkoutStore'
@@ -19,6 +20,7 @@ import Sheet from '../components/Sheet'
 import { MiniBarChart } from '../components/charts'
 import { CATEGORY_META } from '../components/ToastContainer'
 import { ACHIEVEMENTS } from '../data/achievements'
+import BackupSheet from '../components/BackupSheet'
 import { formatVolume } from '../lib/format'
 import { useDragScroll } from '../lib/useDragScroll'
 
@@ -46,6 +48,7 @@ export default function Profile() {
 
   const [editOpen, setEditOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [backupOpen, setBackupOpen] = useState(false)
   const [metric, setMetric] = useState<ActivityMetric>('duration')
   const [comingSoon, setComingSoon] = useState<string | null>(null)
   const metricScrollRef = useDragScroll<HTMLDivElement>()
@@ -187,6 +190,7 @@ export default function Profile() {
         <DashboardButton icon={<ListTree size={20} />} label="Exercises" onClick={() => navigate('/exercises')} />
         <DashboardButton icon={<Ruler size={20} />} label="Measures" onClick={() => setComingSoon('Measures')} />
         <DashboardButton icon={<CalendarDays size={20} />} label="Calendar" onClick={() => navigate('/workout/history')} />
+        <DashboardButton icon={<DatabaseBackup size={20} />} label="Backup & Restore" onClick={() => setBackupOpen(true)} />
       </div>
       <p className="mb-3 rounded-lg bg-surface-higher px-3 py-2 text-[11px] text-white/40">
         Statistics and Measures modules will be built in a future update.
@@ -201,6 +205,7 @@ export default function Profile() {
 
       <EditProfileSheet open={editOpen} onClose={() => setEditOpen(false)} profile={profile} onSave={updateProfile} />
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} onSave={updateSettings} />
+      <BackupSheet open={backupOpen} onClose={() => setBackupOpen(false)} />
 
       {comingSoon && (
         <Sheet open onClose={() => setComingSoon(null)} title={comingSoon}>

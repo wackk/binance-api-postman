@@ -157,6 +157,7 @@ interface WorkoutStore {
 
   // exercise library
   addCustomExercise: (e: Omit<Exercise, 'id' | 'isCustom'>) => Exercise
+  updateCustomExercise: (id: string, patch: Partial<Omit<Exercise, 'id' | 'isCustom'>>) => void
   getAllExercises: () => Exercise[]
   getExerciseById: (id: string) => Exercise | undefined
 
@@ -227,6 +228,10 @@ interface WorkoutStore {
 
   // mobility
   createMobilityRoutine: (title: string, description: string, durationMinutes: number) => MobilityRoutine
+  updateMobilityRoutine: (
+    id: string,
+    patch: Partial<Pick<MobilityRoutine, 'title' | 'description' | 'durationMinutes' | 'exercises'>>,
+  ) => void
   deleteMobilityRoutine: (id: string) => void
   logMobilitySession: (routine: MobilityRoutine, durationSeconds: number) => void
   completeAssessment: (scores: BodyAreaScore[]) => void
@@ -567,6 +572,11 @@ export const useWorkoutStore = create<WorkoutStore>()(
         const exercise: Exercise = { ...e, id: `custom-${nanoid(8)}`, isCustom: true }
         set((s) => ({ customExercises: [...s.customExercises, exercise] }))
         return exercise
+      },
+      updateCustomExercise: (id, patch) => {
+        set((s) => ({
+          customExercises: s.customExercises.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+        }))
       },
       getAllExercises: () => [...EXERCISE_LIBRARY, ...get().customExercises],
       getExerciseById: (id) => get().getAllExercises().find((e) => e.id === id),
@@ -1045,6 +1055,11 @@ export const useWorkoutStore = create<WorkoutStore>()(
         }
         set((s) => ({ mobilityRoutines: [routine, ...s.mobilityRoutines] }))
         return routine
+      },
+      updateMobilityRoutine: (id, patch) => {
+        set((s) => ({
+          mobilityRoutines: s.mobilityRoutines.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+        }))
       },
       deleteMobilityRoutine: (id) => set((s) => ({ mobilityRoutines: s.mobilityRoutines.filter((r) => r.id !== id) })),
       logMobilitySession: (routine, durationSeconds) => {

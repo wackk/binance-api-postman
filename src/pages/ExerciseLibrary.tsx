@@ -169,7 +169,7 @@ export default function ExerciseLibrary({ mode: _mode }: { mode?: 'browse' }) {
       <CreateExerciseSheet
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreate={(payload) => {
+        onSave={(payload) => {
           const created = addCustomExercise(payload)
           setCreateOpen(false)
           navigate(`/exercises/${created.id}`)

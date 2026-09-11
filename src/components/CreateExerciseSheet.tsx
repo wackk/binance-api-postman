@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Sheet from './Sheet'
 import { EQUIPMENT_TYPES, MUSCLE_GROUPS } from '../data/exercises'
 import type { Equipment, Exercise, ExerciseLogType, MuscleGroup } from '../types'
@@ -6,25 +6,43 @@ import type { Equipment, Exercise, ExerciseLogType, MuscleGroup } from '../types
 export default function CreateExerciseSheet({
   open,
   onClose,
-  onCreate,
+  onSave,
+  initial,
 }: {
   open: boolean
   onClose: () => void
-  onCreate: (payload: Omit<Exercise, 'id' | 'isCustom'>) => void
+  onSave: (payload: Omit<Exercise, 'id' | 'isCustom'>) => void
+  /** Pass an existing exercise to edit it in place; omit to create a new one. */
+  initial?: Exercise
 }) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState<MuscleGroup>('Chest')
   const [equipment, setEquipment] = useState<Equipment>('Barbell')
   const [logType, setLogType] = useState<ExerciseLogType>('weight_reps')
 
+  useEffect(() => {
+    if (!open) return
+    setName(initial?.name ?? '')
+    setCategory(initial?.category ?? 'Chest')
+    setEquipment(initial?.equipment ?? 'Barbell')
+    setLogType(initial?.logType ?? 'weight_reps')
+  }, [open, initial])
+
   function submit() {
     if (!name.trim()) return
-    onCreate({ name: name.trim(), category, equipment, logType, secondaryMuscles: [], instructions: [] })
-    setName('')
+    onSave({
+      name: name.trim(),
+      category,
+      equipment,
+      logType,
+      secondaryMuscles: initial?.secondaryMuscles ?? [],
+      instructions: initial?.instructions ?? [],
+    })
+    if (!initial) setName('')
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Create Exercise">
+    <Sheet open={open} onClose={onClose} title={initial ? 'Edit Exercise' : 'Create Exercise'}>
       <div className="space-y-4 p-4">
         <div>
           <label className="mb-1.5 block text-xs font-semibold text-white/50">Name</label>
@@ -75,7 +93,7 @@ export default function CreateExerciseSheet({
           </select>
         </div>
         <button onClick={submit} disabled={!name.trim()} className="w-full rounded-xl bg-accent py-3 text-sm font-bold disabled:opacity-40">
-          Create Exercise
+          {initial ? 'Save Changes' : 'Create Exercise'}
         </button>
       </div>
     </Sheet>

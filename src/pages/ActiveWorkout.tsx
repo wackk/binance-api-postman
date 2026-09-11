@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, Plus, Trash2, Check, X, Trophy } from 'lucide-react'
+import { ChevronDown, Plus, Trash2, Check, X, Trophy, Pause } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import ExercisePicker from '../components/ExercisePicker'
 import Sheet from '../components/Sheet'
@@ -297,6 +297,14 @@ export default function ActiveWorkout() {
         >
           <Plus size={16} /> Add Exercise
         </button>
+
+        <button
+          onClick={() => navigate('/workout')}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/15 py-3 text-sm font-bold text-white/70"
+        >
+          <Pause size={14} /> Pause Workout
+        </button>
+        <p className="mt-1.5 text-center text-[11px] text-white/30">Your progress is saved — resume anytime from the Workout tab.</p>
 
         <button
           onClick={() => setDiscardConfirmOpen(true)}
