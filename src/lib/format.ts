@@ -81,3 +81,8 @@ export function estOneRepMax(weight: number, reps: number): number {
   if (reps <= 1) return weight
   return Math.round(weight * (1 + reps / 30))
 }
+
+export function toDatetimeLocalValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}

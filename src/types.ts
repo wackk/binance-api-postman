@@ -53,6 +53,8 @@ export interface Exercise {
 
 export type SetType = 'warmup' | 'normal' | 'dropset' | 'failure'
 
+export type PRType = 'weight' | 'reps' | 'duration' | 'est1rm'
+
 export interface WorkoutSet {
   id: string
   type: SetType
@@ -63,6 +65,7 @@ export interface WorkoutSet {
   completed: boolean
   previousWeight?: number | null
   previousReps?: number | null
+  prTypes?: PRType[]
 }
 
 export interface WorkoutExerciseEntry {
@@ -81,7 +84,13 @@ export interface Routine {
   exercises: WorkoutExerciseEntry[]
   createdAt: string
   updatedAt: string
-  folder?: string | null
+  folderId?: string | null
+}
+
+export interface RoutineFolder {
+  id: string
+  name: string
+  colorHex: string
 }
 
 export interface ActiveWorkoutSession {
@@ -95,6 +104,7 @@ export interface ActiveWorkoutSession {
 export interface WorkoutLog {
   id: string
   name: string
+  notes: string
   routineId: string | null
   startedAt: string
   endedAt: string
@@ -112,4 +122,73 @@ export interface PersonalRecord {
   bestEst1RM: number
   bestVolumeInSet: number
   achievedAt: string
+}
+
+// ---- Climbing ----
+
+export type ClimbType = 'Bouldering' | 'Sport'
+
+export interface ClimbEntry {
+  id: string
+  type: ClimbType
+  grade: string
+  styleTags: string[]
+  attempts: number
+  isSend: boolean
+  timestampMs: number
+  location: string
+}
+
+// ---- Mobility ----
+
+export interface BodyAreaScore {
+  areaName: string
+  scorePercentage: number
+  statusLabel: string
+}
+
+export interface MobilityStretch {
+  name: string
+  durationSeconds: number
+  targetArea: string
+}
+
+export interface MobilityRoutine {
+  id: string
+  title: string
+  description: string
+  durationMinutes: number
+  exercises: MobilityStretch[]
+  isAiGenerated: boolean
+  isCustom: boolean
+}
+
+export interface MobilityLog {
+  id: string
+  routineId: string
+  routineTitle: string
+  completedAt: string
+  durationSeconds: number
+  exercisesDone: string[]
+}
+
+// ---- Profile ----
+
+export type WeightUnit = 'kg' | 'lbs'
+
+export interface UserProfile {
+  username: string
+  sex: string
+  bio: string
+  avatarColorIndex: number
+}
+
+export interface UserSettings {
+  weightUnit: WeightUnit
+  defaultRestTimerSec: number
+  workoutReminders: boolean
+  climbingAlerts: boolean
+  mobilityReminders: boolean
+  boulderingGradeSystem: string
+  dailyMobilityTargetMins: number
 }

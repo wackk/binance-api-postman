@@ -9,7 +9,10 @@ import ExerciseLibrary from './pages/ExerciseLibrary'
 import ExerciseDetail from './pages/ExerciseDetail'
 import WorkoutSummary from './pages/WorkoutSummary'
 import History from './pages/History'
-import ComingSoon from './pages/ComingSoon'
+import Home from './pages/Home'
+import Climbing from './pages/Climbing'
+import Mobility from './pages/Mobility'
+import Profile from './pages/Profile'
 import { useWorkoutStore } from './store/useWorkoutStore'
 
 function ScreenChrome() {
@@ -33,8 +36,10 @@ function ScreenChrome() {
             <Route path="/workout/history" element={<History />} />
             <Route path="/exercises" element={<ExerciseLibrary mode="browse" />} />
             <Route path="/exercises/:exerciseId" element={<ExerciseDetail />} />
-            <Route path="/home" element={<ComingSoon title="Home" subtitle="Your activity feed will live here." />} />
-            <Route path="/profile" element={<ComingSoon title="Profile" subtitle="Stats, measurements & settings coming soon." />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/climbing" element={<Climbing />} />
+            <Route path="/mobility" element={<Mobility />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/workout" replace />} />
           </Routes>
         </div>

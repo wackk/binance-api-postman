@@ -3,12 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Trophy, ListChecks, History as HistoryIcon } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { equipmentIcon, estOneRepMax, formatWeight, muscleColor, relativeDate } from '../lib/format'
+import PRBadge from '../components/PRBadge'
 
 export default function ExerciseDetail() {
   const navigate = useNavigate()
   const { exerciseId } = useParams()
   const getExerciseById = useWorkoutStore((s) => s.getExerciseById)
   const history = useWorkoutStore((s) => s.history)
+  const weightUnit = useWorkoutStore((s) => s.settings.weightUnit)
 
   const exercise = exerciseId ? getExerciseById(exerciseId) : undefined
 
@@ -86,17 +88,17 @@ export default function ExerciseDetail() {
           <div className="mb-5 grid grid-cols-3 gap-2">
             <div className="rounded-xl bg-surface-raised p-3 text-center">
               <Trophy size={14} className="mx-auto mb-1 text-accent" />
-              <p className="text-sm font-extrabold">{formatWeight(records.bestWeight)}kg</p>
+              <p className="text-sm font-extrabold">{formatWeight(records.bestWeight)}{weightUnit}</p>
               <p className="text-[10px] text-white/40">Best Weight</p>
             </div>
             <div className="rounded-xl bg-surface-raised p-3 text-center">
               <Trophy size={14} className="mx-auto mb-1 text-accent" />
-              <p className="text-sm font-extrabold">{formatWeight(records.bestEst1RM)}kg</p>
+              <p className="text-sm font-extrabold">{formatWeight(records.bestEst1RM)}{weightUnit}</p>
               <p className="text-[10px] text-white/40">Est. 1RM</p>
             </div>
             <div className="rounded-xl bg-surface-raised p-3 text-center">
               <Trophy size={14} className="mx-auto mb-1 text-accent" />
-              <p className="text-sm font-extrabold">{formatWeight(records.bestVolume)}kg</p>
+              <p className="text-sm font-extrabold">{formatWeight(records.bestVolume)}{weightUnit}</p>
               <p className="text-[10px] text-white/40">Best Set Vol.</p>
             </div>
           </div>
@@ -131,11 +133,20 @@ export default function ExerciseDetail() {
               {pastLogs.map(({ log, entry }) => (
                 <li key={log.id} className="rounded-xl bg-surface-raised p-3.5">
                   <p className="mb-1.5 text-xs font-semibold text-white/40">{relativeDate(log.endedAt)}</p>
-                  <ul className="space-y-1">
+                  <ul className="space-y-1.5">
                     {entry.sets.map((s, i) => (
-                      <li key={s.id} className="flex justify-between text-sm text-white/70">
-                        <span className="text-white/40">Set {i + 1}</span>
-                        <span>{formatWeight(s.weight)}kg × {s.reps ?? '-'}</span>
+                      <li key={s.id}>
+                        <div className="flex justify-between text-sm text-white/70">
+                          <span className="text-white/40">Set {i + 1}</span>
+                          <span>{formatWeight(s.weight)}{weightUnit} × {s.reps ?? '-'}</span>
+                        </div>
+                        {s.prTypes && s.prTypes.length > 0 && (
+                          <div className="mt-1 flex justify-end gap-1">
+                            {s.prTypes.map((t) => (
+                              <PRBadge key={t} type={t} />
+                            ))}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>

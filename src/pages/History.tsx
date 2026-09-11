@@ -7,6 +7,7 @@ import { formatVolume, relativeDate } from '../lib/format'
 export default function History() {
   const navigate = useNavigate()
   const history = useWorkoutStore((s) => s.history)
+  const weightUnit = useWorkoutStore((s) => s.settings.weightUnit)
 
   const grouped = useMemo(() => {
     const groups: Record<string, typeof history> = {}
@@ -48,7 +49,7 @@ export default function History() {
                       <div className="mt-2 flex gap-4 text-xs text-white/50">
                         <span>{log.exercises.length} exercises</span>
                         <span>{log.totalSets} sets</span>
-                        <span>{formatVolume(log.totalVolume)}kg volume</span>
+                        <span>{formatVolume(log.totalVolume)} {weightUnit} volume</span>
                       </div>
                     </button>
                   </li>

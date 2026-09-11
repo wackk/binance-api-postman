@@ -4,6 +4,8 @@ import { nanoid } from 'nanoid'
 import { ArrowLeft, Plus, Trash2, GripVertical } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import ExercisePicker from '../components/ExercisePicker'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { useDragScroll } from '../lib/useDragScroll'
 import type { Routine, WorkoutExerciseEntry, WorkoutSet } from '../types'
 
 function blankSet(): WorkoutSet {
@@ -18,12 +20,12 @@ function blankSet(): WorkoutSet {
   }
 }
 
-function blankEntry(exerciseId: string): WorkoutExerciseEntry {
+function blankEntry(exerciseId: string, defaultRestSeconds: number): WorkoutExerciseEntry {
   return {
     id: nanoid(8),
     exerciseId,
     notes: '',
-    restSeconds: 90,
+    restSeconds: defaultRestSeconds,
     supersetGroup: null,
     sets: [blankSet(), blankSet(), blankSet()],
   }
@@ -33,23 +35,29 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
   const navigate = useNavigate()
   const { routineId } = useParams()
   const routines = useWorkoutStore((s) => s.routines)
+  const folders = useWorkoutStore((s) => s.folders)
   const createRoutine = useWorkoutStore((s) => s.createRoutine)
   const updateRoutine = useWorkoutStore((s) => s.updateRoutine)
   const deleteRoutine = useWorkoutStore((s) => s.deleteRoutine)
   const getExerciseById = useWorkoutStore((s) => s.getExerciseById)
+  const weightUnit = useWorkoutStore((s) => s.settings.weightUnit)
+  const defaultRestSeconds = useWorkoutStore((s) => s.settings.defaultRestTimerSec)
 
   const existing = mode === 'edit' ? routines.find((r) => r.id === routineId) : undefined
 
   const [name, setName] = useState(existing?.name ?? 'New Routine')
+  const [folderId, setFolderId] = useState<string | null>(existing?.folderId ?? null)
+  const folderScrollRef = useDragScroll<HTMLDivElement>()
   const [exercises, setExercises] = useState<WorkoutExerciseEntry[]>(existing?.exercises ?? [])
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (mode === 'edit' && !existing) navigate('/workout', { replace: true })
   }, [mode, existing, navigate])
 
   function addExercises(ids: string[]) {
-    setExercises((prev) => [...prev, ...ids.map(blankEntry)])
+    setExercises((prev) => [...prev, ...ids.map((id) => blankEntry(id, defaultRestSeconds))])
   }
 
   function removeExercise(entryId: string) {
@@ -92,10 +100,10 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
   function handleSave() {
     const trimmedName = name.trim() || 'Untitled Routine'
     if (mode === 'edit' && existing) {
-      updateRoutine({ ...existing, name: trimmedName, exercises })
+      updateRoutine({ ...existing, name: trimmedName, exercises, folderId })
     } else {
       const created = createRoutine(trimmedName)
-      const full: Routine = { ...created, name: trimmedName, exercises }
+      const full: Routine = { ...created, name: trimmedName, exercises, folderId }
       updateRoutine(full)
     }
     navigate('/workout')
@@ -103,10 +111,8 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
 
   function handleDelete() {
     if (!existing) return
-    if (confirm(`Delete "${existing.name}"?`)) {
-      deleteRoutine(existing.id)
-      navigate('/workout')
-    }
+    deleteRoutine(existing.id)
+    navigate('/workout')
   }
 
   return (
@@ -126,8 +132,33 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Routine name"
-          className="mb-6 w-full bg-transparent text-2xl font-extrabold outline-none placeholder:text-white/30"
+          className="mb-3 w-full bg-transparent text-2xl font-extrabold outline-none placeholder:text-white/30"
         />
+
+        {folders.length > 0 && (
+          <div ref={folderScrollRef} className="no-scrollbar mb-6 flex cursor-grab select-none gap-2 overflow-x-auto active:cursor-grabbing">
+            <button
+              onClick={() => setFolderId(null)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                folderId === null ? 'bg-accent text-white' : 'bg-surface-raised text-white/50'
+              }`}
+            >
+              No Folder
+            </button>
+            {folders.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFolderId(f.id)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                  folderId === f.id ? 'text-white' : 'bg-surface-raised'
+                }`}
+                style={folderId === f.id ? { backgroundColor: f.colorHex } : { color: f.colorHex }}
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         {exercises.length === 0 && (
           <div className="mb-6 rounded-xl border border-dashed border-surface-border px-4 py-10 text-center">
@@ -164,7 +195,7 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
 
                 <div className="mb-1 grid grid-cols-[28px_1fr_1fr_28px] gap-2 px-1 text-[10px] font-semibold uppercase text-white/30">
                   <span>Set</span>
-                  <span>Kg</span>
+                  <span>{weightUnit}</span>
                   <span>Reps</span>
                   <span />
                 </div>
@@ -222,7 +253,7 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
 
         {mode === 'edit' && (
           <button
-            onClick={handleDelete}
+            onClick={() => setDeleteConfirmOpen(true)}
             className="mt-3 w-full rounded-xl border border-red-500/30 py-3 text-sm font-bold text-red-400"
           >
             Delete Routine
@@ -231,6 +262,16 @@ export default function RoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
       </div>
 
       <ExercisePicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addExercises} />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete Routine"
+        message={existing ? `Delete "${existing.name}"? This can't be undone.` : undefined}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   )
 }
