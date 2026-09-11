@@ -23,8 +23,18 @@ import { EXERCISE_LIBRARY } from '../data/exercises'
 import { estOneRepMax, relativeDate } from '../lib/format'
 import { DEFAULT_BODY_AREA_SCORES, DAILY_AI_ROUTINE } from '../data/mobility'
 import { BOULDER_GRADES, SPORT_GRADES, boulderGradeIndex, sportGradeIndex } from '../data/climbing'
+import { ACHIEVEMENTS } from '../data/achievements'
+import { useToastStore } from './useToastStore'
+import { playCelebrationSound } from '../lib/sound'
 
 const FOLDER_COLORS = ['#4DA1FF', '#FF9F0A', '#00E676', '#FF6B6B', '#9B5DE5']
+
+const PR_LABELS: Record<PRType, string> = {
+  weight: 'Weight PR',
+  reps: 'Reps PR',
+  duration: 'Duration PR',
+  est1rm: 'Est. 1RM PR',
+}
 
 export interface RoutineStats {
   lastPerformedText: string
@@ -61,6 +71,11 @@ export interface ExerciseBests {
   maxWeight: number | null
   maxReps: number | null
   maxDuration: number | null
+}
+
+export interface ActivityStreak {
+  current: number
+  longest: number
 }
 
 interface MiniSet {
@@ -124,6 +139,7 @@ interface WorkoutStore {
   assessmentCompletedAt: string | null
   profile: UserProfile
   settings: UserSettings
+  achievements: Record<string, string>
 
   // exercise library
   addCustomExercise: (e: Omit<Exercise, 'id' | 'isCustom'>) => Exercise
@@ -195,6 +211,10 @@ interface WorkoutStore {
   updateSettings: (patch: Partial<UserSettings>) => void
   getCombinedStats: () => CombinedStats
   getDailyActivity: (metric: ActivityMetric, days: number) => DailyActivityPoint[]
+
+  // achievements
+  getActivityStreak: () => ActivityStreak
+  checkAchievements: () => void
 
   // demo data
   loadDemoData: () => void
@@ -504,7 +524,9 @@ export const useWorkoutStore = create<WorkoutStore>()(
         mobilityReminders: true,
         boulderingGradeSystem: 'V-Scale',
         dailyMobilityTargetMins: 15,
+        soundEffectsEnabled: true,
       },
+      achievements: {},
 
       addCustomExercise: (e) => {
         const exercise: Exercise = { ...e, id: `custom-${nanoid(8)}`, isCustom: true }
@@ -704,7 +726,20 @@ export const useWorkoutStore = create<WorkoutStore>()(
             ),
           },
         })
-        if (justCompleted) get().startRestTimer(restSeconds)
+        if (justCompleted) {
+          get().startRestTimer(restSeconds)
+          const prTypes = get().getSetPRFlags(entryId, setId)
+          if (prTypes.length > 0) {
+            const exercise = entry ? get().getExerciseById(entry.exerciseId) : undefined
+            useToastStore.getState().pushToast({
+              kind: 'pr',
+              title: exercise?.name ?? 'Personal Record',
+              subtitle: prTypes.map((t) => PR_LABELS[t]).join(' · '),
+              prTypes,
+            })
+            if (get().settings.soundEffectsEnabled) playCelebrationSound('pr')
+          }
+        }
       },
       updateEntryNotes: (entryId, notes) => {
         const w = get().activeWorkout
@@ -797,6 +832,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           activeWorkout: null,
           restTimer: { running: false, endsAt: null, totalSeconds: s.settings.defaultRestTimerSec },
         }))
+        get().checkAchievements()
         return log
       },
 
@@ -892,6 +928,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           location: 'Local Gym',
         }
         set((s) => ({ climbs: [climb, ...s.climbs] }))
+        get().checkAchievements()
       },
       deleteClimb: (id) => set((s) => ({ climbs: s.climbs.filter((c) => c.id !== id) })),
       getClimbingStats: () => {
@@ -938,6 +975,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           exercisesDone: routine.exercises.map((e) => e.name),
         }
         set((s) => ({ mobilityLogs: [log, ...s.mobilityLogs] }))
+        get().checkAchievements()
       },
       completeAssessment: (scores) => set({ bodyAreaScores: scores, assessmentCompletedAt: new Date().toISOString() }),
 
@@ -995,6 +1033,72 @@ export const useWorkoutStore = create<WorkoutStore>()(
         return points
       },
 
+      getActivityStreak: () => {
+        const s = get()
+        const dayKey = (ms: number) => new Date(ms).toDateString()
+        const days = new Set<string>()
+        for (const log of s.history) days.add(dayKey(new Date(log.endedAt).getTime()))
+        for (const c of s.climbs) days.add(dayKey(c.timestampMs))
+        for (const m of s.mobilityLogs) days.add(dayKey(new Date(m.completedAt).getTime()))
+
+        if (days.size === 0) return { current: 0, longest: 0 }
+
+        const todayStart = new Date().setHours(0, 0, 0, 0)
+        let current = 0
+        let cursor = todayStart
+        if (!days.has(new Date(cursor).toDateString())) cursor -= DAY_MS
+        while (days.has(new Date(cursor).toDateString())) {
+          current += 1
+          cursor -= DAY_MS
+        }
+
+        const sortedDayMs = Array.from(days)
+          .map((d) => new Date(d).getTime())
+          .sort((a, b) => a - b)
+        let longest = 0
+        let run = 0
+        let prev: number | null = null
+        for (const d of sortedDayMs) {
+          run = prev !== null && d - prev === DAY_MS ? run + 1 : 1
+          longest = Math.max(longest, run)
+          prev = d
+        }
+
+        return { current, longest: Math.max(longest, current) }
+      },
+      checkAchievements: () => {
+        const s = get()
+        const streak = s.getActivityStreak()
+        const workoutCount = s.history.length
+        const prCount = s.history.reduce((n, log) => n + log.prIds.length, 0)
+
+        const newlyUnlocked = ACHIEVEMENTS.filter((def) => {
+          if (s.achievements[def.id]) return false
+          if (def.category === 'streak') return streak.current >= def.threshold
+          if (def.category === 'workouts') return workoutCount >= def.threshold
+          return prCount >= def.threshold
+        })
+        if (newlyUnlocked.length === 0) return
+
+        const unlockedAt = new Date().toISOString()
+        set((st) => ({
+          achievements: {
+            ...st.achievements,
+            ...Object.fromEntries(newlyUnlocked.map((def) => [def.id, unlockedAt])),
+          },
+        }))
+
+        for (const def of newlyUnlocked) {
+          useToastStore.getState().pushToast({
+            kind: 'achievement',
+            title: def.title,
+            subtitle: def.description,
+            category: def.category,
+          })
+        }
+        if (get().settings.soundEffectsEnabled) playCelebrationSound('achievement')
+      },
+
       loadDemoData: () => {
         const demo = buildDemoData(Date.now())
         set((s) => ({
@@ -1008,6 +1112,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           ),
           profile: { ...s.profile, username: 'Alex Rivera', bio: 'Training for strength, climbing for fun.', avatarColorIndex: 1 },
         }))
+        get().checkAchievements()
       },
     }),
     { name: 'reppy-workout-store' },

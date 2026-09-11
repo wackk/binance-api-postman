@@ -11,11 +11,14 @@ import {
   ListTree,
   Ruler,
   CalendarDays,
+  Flame,
 } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import type { ActivityMetric } from '../store/useWorkoutStore'
 import Sheet from '../components/Sheet'
 import { MiniBarChart } from '../components/charts'
+import { CATEGORY_META } from '../components/ToastContainer'
+import { ACHIEVEMENTS } from '../data/achievements'
 import { formatVolume } from '../lib/format'
 import { useDragScroll } from '../lib/useDragScroll'
 
@@ -38,6 +41,8 @@ export default function Profile() {
   const getCombinedStats = useWorkoutStore((s) => s.getCombinedStats)
   const getDailyActivity = useWorkoutStore((s) => s.getDailyActivity)
   const loadDemoData = useWorkoutStore((s) => s.loadDemoData)
+  const achievements = useWorkoutStore((s) => s.achievements)
+  const getActivityStreak = useWorkoutStore((s) => s.getActivityStreak)
 
   const [editOpen, setEditOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -49,6 +54,7 @@ export default function Profile() {
   const metricInfo = METRIC_OPTIONS.find((m) => m.key === metric)!
   const chartData = getDailyActivity(metric, 7).map((p) => ({ label: p.dayLabel, value: p.value }))
   const avatarColor = AVATAR_COLORS[profile.avatarColorIndex] ?? AVATAR_COLORS[0]
+  const streak = getActivityStreak()
 
   return (
     <div className="px-4 pb-8 pt-2">
@@ -139,6 +145,39 @@ export default function Profile() {
               ['Focus Area', stats.topAreaFocus],
             ]}
           />
+        </div>
+      </div>
+
+      <div className="mb-4 rounded-xl bg-surface-raised p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-bold">Achievements</p>
+          <div className="flex items-center gap-1 text-orange-400">
+            <Flame size={14} />
+            <span className="text-xs font-bold">{streak.current} day streak</span>
+          </div>
+        </div>
+        {streak.longest > streak.current && (
+          <p className="mb-3 text-[10px] text-white/40">Longest streak: {streak.longest} days</p>
+        )}
+        <div className="grid grid-cols-3 gap-2">
+          {ACHIEVEMENTS.map((a) => {
+            const unlocked = !!achievements[a.id]
+            const meta = CATEGORY_META[a.category]
+            const Icon = meta.icon
+            return (
+              <div
+                key={a.id}
+                className={`flex flex-col items-center gap-1 rounded-lg p-2.5 text-center ${unlocked ? '' : 'opacity-30'}`}
+                style={{ backgroundColor: unlocked ? meta.color + '1A' : 'transparent' }}
+                title={a.description}
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full" style={{ backgroundColor: meta.color + '26' }}>
+                  <Icon size={16} style={{ color: meta.color }} />
+                </span>
+                <p className="text-[10px] font-bold leading-tight">{a.title}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -321,6 +360,7 @@ function SettingsSheet({
     mobilityReminders: boolean
     boulderingGradeSystem: string
     dailyMobilityTargetMins: number
+    soundEffectsEnabled: boolean
   }
   onSave: (patch: Partial<typeof settings>) => void
 }) {
@@ -341,6 +381,14 @@ function SettingsSheet({
             label="Daily Mobility Stretch Alerts"
             checked={temp.mobilityReminders}
             onChange={(v) => setTemp({ ...temp, mobilityReminders: v })}
+          />
+        </SettingsSection>
+
+        <SettingsSection title="Sound">
+          <ToggleRow
+            label="Sound Effects (PRs & Achievements)"
+            checked={temp.soundEffectsEnabled}
+            onChange={(v) => setTemp({ ...temp, soundEffectsEnabled: v })}
           />
         </SettingsSection>
 

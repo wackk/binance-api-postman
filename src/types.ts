@@ -191,4 +191,9 @@ export interface UserSettings {
   mobilityReminders: boolean
   boulderingGradeSystem: string
   dailyMobilityTargetMins: number
+  soundEffectsEnabled: boolean
 }
+
+// ---- Achievements ----
+
+export type AchievementCategory = 'streak' | 'workouts' | 'prs'

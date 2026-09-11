@@ -13,6 +13,7 @@ import Home from './pages/Home'
 import Climbing from './pages/Climbing'
 import Mobility from './pages/Mobility'
 import Profile from './pages/Profile'
+import ToastContainer from './components/ToastContainer'
 import { useWorkoutStore } from './store/useWorkoutStore'
 
 function ScreenChrome() {
@@ -45,6 +46,7 @@ function ScreenChrome() {
         </div>
         {!isActiveWorkoutScreen && activeWorkout && <ResumeWorkoutBar />}
         {isActiveWorkoutScreen && <RestTimerBar />}
+        <ToastContainer />
       </div>
       {showBottomNav && <BottomNav />}
     </div>
