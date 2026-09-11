@@ -25,7 +25,7 @@ import { DEFAULT_BODY_AREA_SCORES, DAILY_AI_ROUTINE } from '../data/mobility'
 import { BOULDER_GRADES, SPORT_GRADES, boulderGradeIndex, sportGradeIndex } from '../data/climbing'
 import { ACHIEVEMENTS } from '../data/achievements'
 import { useToastStore } from './useToastStore'
-import { playCelebrationSound } from '../lib/sound'
+import { playCelebrationSound, playTimerAlarm } from '../lib/sound'
 
 const FOLDER_COLORS = ['#4DA1FF', '#FF9F0A', '#00E676', '#FF6B6B', '#9B5DE5']
 
@@ -125,6 +125,19 @@ interface RestTimerState {
   totalSeconds: number
 }
 
+export type UtilityTimerMode = 'timer' | 'stopwatch'
+
+interface UtilityTimerState {
+  mode: UtilityTimerMode
+  timerTotalSeconds: number
+  timerRemainingSeconds: number
+  timerRunning: boolean
+  timerEndsAt: number | null
+  stopwatchElapsedSeconds: number
+  stopwatchRunning: boolean
+  stopwatchStartedAt: number | null
+}
+
 interface WorkoutStore {
   customExercises: Exercise[]
   routines: Routine[]
@@ -132,6 +145,7 @@ interface WorkoutStore {
   history: WorkoutLog[]
   activeWorkout: ActiveWorkoutSession | null
   restTimer: RestTimerState
+  utilityTimer: UtilityTimerState
   climbs: ClimbEntry[]
   mobilityRoutines: MobilityRoutine[]
   mobilityLogs: MobilityLog[]
@@ -181,6 +195,17 @@ interface WorkoutStore {
   startRestTimer: (seconds: number) => void
   stopRestTimer: () => void
   adjustRestTimer: (deltaSeconds: number) => void
+
+  // standalone timer & stopwatch
+  setUtilityTimerMode: (mode: UtilityTimerMode) => void
+  setTimerDuration: (seconds: number) => void
+  startTimer: () => void
+  pauseTimer: () => void
+  resetTimer: () => void
+  completeTimer: () => void
+  startStopwatch: () => void
+  pauseStopwatch: () => void
+  resetStopwatch: () => void
 
   // history helpers
   getLastPerformance: (exerciseId: string) => WorkoutExerciseEntry | undefined
@@ -510,6 +535,16 @@ export const useWorkoutStore = create<WorkoutStore>()(
       history: [],
       activeWorkout: null,
       restTimer: { running: false, endsAt: null, totalSeconds: 90 },
+      utilityTimer: {
+        mode: 'timer',
+        timerTotalSeconds: 60,
+        timerRemainingSeconds: 60,
+        timerRunning: false,
+        timerEndsAt: null,
+        stopwatchElapsedSeconds: 0,
+        stopwatchRunning: false,
+        stopwatchStartedAt: null,
+      },
       climbs: [],
       mobilityRoutines: [],
       mobilityLogs: [],
@@ -845,6 +880,53 @@ export const useWorkoutStore = create<WorkoutStore>()(
         const t = get().restTimer
         if (!t.running || !t.endsAt) return
         set({ restTimer: { ...t, endsAt: t.endsAt + deltaSeconds * 1000 } })
+      },
+
+      setUtilityTimerMode: (mode) => set((s) => ({ utilityTimer: { ...s.utilityTimer, mode } })),
+      setTimerDuration: (seconds) =>
+        set((s) => ({
+          utilityTimer: {
+            ...s.utilityTimer,
+            timerTotalSeconds: seconds,
+            timerRemainingSeconds: seconds,
+            timerRunning: false,
+            timerEndsAt: null,
+          },
+        })),
+      startTimer: () => {
+        const t = get().utilityTimer
+        if (t.timerRemainingSeconds <= 0) return
+        set({ utilityTimer: { ...t, timerRunning: true, timerEndsAt: Date.now() + t.timerRemainingSeconds * 1000 } })
+      },
+      pauseTimer: () => {
+        const t = get().utilityTimer
+        if (!t.timerRunning || !t.timerEndsAt) return
+        const remaining = Math.max(0, Math.round((t.timerEndsAt - Date.now()) / 1000))
+        set({ utilityTimer: { ...t, timerRunning: false, timerEndsAt: null, timerRemainingSeconds: remaining } })
+      },
+      resetTimer: () => {
+        const t = get().utilityTimer
+        set({ utilityTimer: { ...t, timerRunning: false, timerEndsAt: null, timerRemainingSeconds: t.timerTotalSeconds } })
+      },
+      completeTimer: () => {
+        const t = get().utilityTimer
+        if (!t.timerRunning) return
+        set({ utilityTimer: { ...t, timerRunning: false, timerEndsAt: null, timerRemainingSeconds: 0 } })
+        if (get().settings.soundEffectsEnabled) playTimerAlarm()
+      },
+      startStopwatch: () => {
+        const t = get().utilityTimer
+        set({ utilityTimer: { ...t, stopwatchRunning: true, stopwatchStartedAt: Date.now() - t.stopwatchElapsedSeconds * 1000 } })
+      },
+      pauseStopwatch: () => {
+        const t = get().utilityTimer
+        if (!t.stopwatchRunning || !t.stopwatchStartedAt) return
+        const elapsed = (Date.now() - t.stopwatchStartedAt) / 1000
+        set({ utilityTimer: { ...t, stopwatchRunning: false, stopwatchStartedAt: null, stopwatchElapsedSeconds: elapsed } })
+      },
+      resetStopwatch: () => {
+        const t = get().utilityTimer
+        set({ utilityTimer: { ...t, stopwatchRunning: false, stopwatchStartedAt: null, stopwatchElapsedSeconds: 0 } })
       },
 
       getLastPerformance: (exerciseId) => {

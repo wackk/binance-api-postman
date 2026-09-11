@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom'
 import BottomNav from './components/BottomNav'
 import StatusBar from './components/StatusBar'
@@ -16,6 +17,25 @@ import Profile from './pages/Profile'
 import ToastContainer from './components/ToastContainer'
 import { useWorkoutStore } from './store/useWorkoutStore'
 
+function UtilityTimerWatcher() {
+  const timerRunning = useWorkoutStore((s) => s.utilityTimer.timerRunning)
+  const timerEndsAt = useWorkoutStore((s) => s.utilityTimer.timerEndsAt)
+  const completeTimer = useWorkoutStore((s) => s.completeTimer)
+
+  useEffect(() => {
+    if (!timerRunning || !timerEndsAt) return
+    const remainingMs = timerEndsAt - Date.now()
+    if (remainingMs <= 0) {
+      completeTimer()
+      return
+    }
+    const id = setTimeout(completeTimer, remainingMs)
+    return () => clearTimeout(id)
+  }, [timerRunning, timerEndsAt, completeTimer])
+
+  return null
+}
+
 function ScreenChrome() {
   const location = useLocation()
   const activeWorkout = useWorkoutStore((s) => s.activeWorkout)
@@ -24,6 +44,7 @@ function ScreenChrome() {
 
   return (
     <div className="flex h-full flex-col bg-surface text-white">
+      <UtilityTimerWatcher />
       <StatusBar />
       <div className="relative flex-1 overflow-hidden">
         <div className="no-scrollbar h-full overflow-y-auto pb-4">

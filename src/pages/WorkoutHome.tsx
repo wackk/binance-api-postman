@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, History as HistoryIcon, MoreVertical, Copy, Trash2, Pencil, Play, Folder, FolderPlus, X, Sparkles } from 'lucide-react'
+import { Plus, History as HistoryIcon, MoreVertical, Copy, Trash2, Pencil, Play, Folder, FolderPlus, X, Sparkles, Timer } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { formatVolume, relativeDate } from '../lib/format'
 import Sheet from '../components/Sheet'
 import ConfirmDialog from '../components/ConfirmDialog'
+import TimerSheet from '../components/TimerSheet'
 import type { Routine, RoutineFolder } from '../types'
 
 export default function WorkoutHome() {
@@ -24,6 +25,7 @@ export default function WorkoutHome() {
   const loadDemoData = useWorkoutStore((s) => s.loadDemoData)
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const [folderSheetOpen, setFolderSheetOpen] = useState(false)
+  const [timerSheetOpen, setTimerSheetOpen] = useState(false)
   const [deleteFolderTarget, setDeleteFolderTarget] = useState<RoutineFolder | null>(null)
   const [deleteRoutineTarget, setDeleteRoutineTarget] = useState<Routine | null>(null)
 
@@ -41,13 +43,22 @@ export default function WorkoutHome() {
     <div className="px-4 pb-8 pt-2">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold">Workout</h1>
-        <button
-          onClick={() => navigate('/workout/history')}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-white/70"
-          aria-label="Workout history"
-        >
-          <HistoryIcon size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setTimerSheetOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-white/70"
+            aria-label="Timer & Stopwatch"
+          >
+            <Timer size={18} />
+          </button>
+          <button
+            onClick={() => navigate('/workout/history')}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-white/70"
+            aria-label="Workout history"
+          >
+            <HistoryIcon size={18} />
+          </button>
+        </div>
       </div>
 
       <button
@@ -226,6 +237,7 @@ export default function WorkoutHome() {
       )}
 
       <CreateFolderSheet open={folderSheetOpen} onClose={() => setFolderSheetOpen(false)} onCreate={createFolder} />
+      <TimerSheet open={timerSheetOpen} onClose={() => setTimerSheetOpen(false)} />
 
       <ConfirmDialog
         open={!!deleteFolderTarget}

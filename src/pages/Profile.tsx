@@ -386,7 +386,7 @@ function SettingsSheet({
 
         <SettingsSection title="Sound">
           <ToggleRow
-            label="Sound Effects (PRs & Achievements)"
+            label="Sound Effects (PRs, Achievements & Timers)"
             checked={temp.soundEffectsEnabled}
             onChange={(v) => setTemp({ ...temp, soundEffectsEnabled: v })}
           />
