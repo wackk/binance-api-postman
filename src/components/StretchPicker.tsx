@@ -11,31 +11,40 @@ export default function StretchPicker({
   onClose,
   onSelect,
   multi = true,
+  initialArea = 'All',
+  hideIds,
+  allowCustom = true,
 }: {
   open: boolean
   onClose: () => void
   onSelect: (stretches: MobilityStretch[]) => void
   multi?: boolean
+  /** Pre-select this area's filter chip when the sheet opens — e.g. showing only "Hip Flexors" when substituting a hip stretch. */
+  initialArea?: string
+  /** Stretch ids to hide entirely, such as the one currently being substituted. */
+  hideIds?: string[]
+  allowCustom?: boolean
 }) {
   const [query, setQuery] = useState('')
-  const [area, setArea] = useState<string>('All')
+  const [area, setArea] = useState<string>(initialArea)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [customCount, setCustomCount] = useState(0)
   const areaScrollRef = useDragScroll<HTMLDivElement>()
 
   const filtered = useMemo(() => {
     return STRETCH_LIBRARY.filter((s) => {
+      if (hideIds?.includes(s.id)) return false
       const matchesQuery = s.name.toLowerCase().includes(query.toLowerCase())
       const matchesArea = area === 'All' || s.targetArea === area
       return matchesQuery && matchesArea
     })
-  }, [query, area])
+  }, [query, area, hideIds])
 
   function reset() {
     setSelectedIds([])
     setCustomCount(0)
     setQuery('')
-    setArea('All')
+    setArea(initialArea)
   }
 
   function toLibraryStretch(id: string): MobilityStretch | undefined {
@@ -114,20 +123,22 @@ export default function StretchPicker({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-2">
-          <button
-            onClick={addCustom}
-            className="mb-1 flex w-full items-center gap-3 border-b border-surface-border py-3 text-left"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-emerald-400">
-              <Plus size={18} />
-            </div>
-            <p className="text-sm font-semibold text-emerald-400">Create Custom Stretch</p>
-            {customCount > 0 && (
-              <span className="ml-auto rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs font-bold text-emerald-400">
-                +{customCount}
-              </span>
-            )}
-          </button>
+          {allowCustom && (
+            <button
+              onClick={addCustom}
+              className="mb-1 flex w-full items-center gap-3 border-b border-surface-border py-3 text-left"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400/15 text-emerald-400">
+                <Plus size={18} />
+              </div>
+              <p className="text-sm font-semibold text-emerald-400">Create Custom Stretch</p>
+              {customCount > 0 && (
+                <span className="ml-auto rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs font-bold text-emerald-400">
+                  +{customCount}
+                </span>
+              )}
+            </button>
+          )}
           {filtered.length === 0 && (
             <p className="mt-8 text-center text-sm text-white/40">No stretches found.</p>
           )}

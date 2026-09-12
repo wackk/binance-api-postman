@@ -780,3 +780,55 @@ export const STRETCH_TARGET_AREAS: string[] = [
   'Hip Flexors', 'Adductors', 'Abductors', 'Quadriceps', 'Hamstrings',
   'Calves', 'Ankles', 'Full Body',
 ]
+
+/**
+ * The 2-3 most commonly recommended stretches per target area, curated by
+ * hand — these are favored by the daily-routine recommendation engine over
+ * the rest of that area's stretches. Massage-gun releases are deliberately
+ * left uncurated since they're a supplementary equipment category rather
+ * than a "best stretch for this area" pick.
+ */
+export const TOP_PICK_STRETCH_IDS: ReadonlySet<string> = new Set([
+  // Neck
+  'neck-side-bend', 'chin-tuck', 'levator-scapulae-stretch',
+  // Shoulders
+  'cross-body-shoulder-stretch', 'sleeper-stretch', 'wall-shoulder-flexion-stretch',
+  // Chest
+  'doorway-chest-stretch', 'wall-pec-stretch-high', 'floor-chest-opener',
+  // Upper Back
+  'cat-cow', 'childs-pose', 'thread-the-needle',
+  // Lats
+  'hanging-lat-stretch', 'kneeling-lat-stretch', 'overhead-lat-stretch',
+  // Triceps
+  'overhead-triceps-stretch', 'behind-back-triceps-stretch',
+  // Biceps
+  'wall-bicep-stretch', 'doorway-bicep-stretch',
+  // Forearms
+  'wrist-flexor-stretch', 'wrist-extensor-stretch', 'prayer-stretch',
+  // Finger & Grip
+  'tendon-glide', 'finger-extension-stretch',
+  // Abs
+  'cobra-stretch', 'standing-back-extension',
+  // Obliques
+  'standing-side-bend', 'standing-trunk-rotations',
+  // Lower Back
+  'knee-to-chest-stretch', 'supine-spinal-twist', 'sphinx-pose',
+  // Glutes
+  'pigeon-pose', 'figure-four-stretch', 'half-kneeling-glute-stretch',
+  // Hip Flexors
+  'couch-stretch', 'kneeling-hip-flexor-stretch', 'low-lunge-stretch',
+  // Adductors
+  'butterfly-stretch', 'frog-stretch', 'side-lunge-stretch',
+  // Abductors
+  'standing-it-band-stretch', 'lying-cross-body-hip-stretch',
+  // Quadriceps
+  'standing-quad-stretch', 'kneeling-quad-stretch',
+  // Hamstrings
+  'standing-forward-fold', 'lying-hamstring-stretch-strap', 'doorway-hamstring-stretch',
+  // Calves
+  'standing-calf-stretch', 'bent-knee-calf-stretch', 'step-edge-calf-stretch',
+  // Ankles
+  'kneeling-ankle-dorsiflexion-stretch', 'deep-squat-hold', 'plantar-fascia-stretch',
+  // Full Body
+  'worlds-greatest-stretch', 'sun-salutation-flow',
+])

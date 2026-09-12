@@ -6,9 +6,11 @@ import type {
   BodyAreaScore,
   ClimbEntry,
   ClimbType,
+  DailyMobilityPlan,
   Exercise,
   MobilityLog,
   MobilityRoutine,
+  MobilityStretch,
   PRType,
   Routine,
   RoutineFolder,
@@ -20,14 +22,21 @@ import type {
   WorkoutSet,
 } from '../types'
 import { EXERCISE_LIBRARY } from '../data/exercises'
+import { STRETCH_LIBRARY } from '../data/stretches'
 import { estOneRepMax, relativeDate } from '../lib/format'
 import { DEFAULT_BODY_AREA_SCORES, DAILY_AI_ROUTINE } from '../data/mobility'
+import { generateDailyMobilityPlan, pickReplacementStretch, toMobilityStretch } from '../lib/mobilityRecommendation'
 import { BOULDER_GRADES, SPORT_GRADES, boulderGradeIndex, sportGradeIndex } from '../data/climbing'
 import { ACHIEVEMENTS } from '../data/achievements'
 import { useToastStore } from './useToastStore'
 import { playCelebrationSound, playTimerAlarm } from '../lib/sound'
 
 const FOLDER_COLORS = ['#4DA1FF', '#FF9F0A', '#00E676', '#FF6B6B', '#9B5DE5']
+
+/** MobilityStretch (as stored in a routine/plan) only carries a name, not the library id — look it up when we need to exclude/track it. */
+function findStretchIdByName(name: string): string | undefined {
+  return STRETCH_LIBRARY.find((s) => s.name === name)?.id
+}
 
 const PR_LABELS: Record<PRType, string> = {
   weight: 'Weight PR',
@@ -153,6 +162,9 @@ interface WorkoutStore {
   mobilityLogs: MobilityLog[]
   bodyAreaScores: BodyAreaScore[]
   assessmentCompletedAt: string | null
+  dailyMobilityPlan: DailyMobilityPlan | null
+  excludedStretchIds: string[]
+  stretchUsageLog: Record<string, string>
   profile: UserProfile
   settings: UserSettings
   achievements: Record<string, string>
@@ -237,6 +249,11 @@ interface WorkoutStore {
   deleteMobilityRoutine: (id: string) => void
   logMobilitySession: (routine: MobilityRoutine, durationSeconds: number) => void
   completeAssessment: (scores: BodyAreaScore[]) => void
+  ensureDailyMobilityPlan: (force?: boolean) => void
+  /** Excludes the stretch permanently and auto-refills its slot from the same area; returns the resulting exercise list (shorter if no replacement was available), or null if there's no active plan. */
+  excludeStretchFromDailyPlan: (index: number) => MobilityStretch[] | null
+  /** Permanently excludes the original stretch and swaps its slot to the chosen replacement; returns the resulting exercise list, or null if there's no active plan. */
+  substituteDailyPlanStretch: (index: number, replacementStretchId: string) => MobilityStretch[] | null
 
   // profile & settings
   updateProfile: (patch: Partial<UserProfile>) => void
@@ -558,6 +575,9 @@ export const useWorkoutStore = create<WorkoutStore>()(
       mobilityRoutines: [],
       mobilityLogs: [],
       bodyAreaScores: DEFAULT_BODY_AREA_SCORES,
+      dailyMobilityPlan: null,
+      excludedStretchIds: [],
+      stretchUsageLog: {},
       assessmentCompletedAt: null,
       profile: { username: 'Athlete', sex: 'Prefer not to say', bio: '', avatarColorIndex: 0 },
       settings: {
@@ -1078,7 +1098,52 @@ export const useWorkoutStore = create<WorkoutStore>()(
         set((s) => ({ mobilityLogs: [log, ...s.mobilityLogs] }))
         get().checkAchievements()
       },
-      completeAssessment: (scores) => set({ bodyAreaScores: scores, assessmentCompletedAt: new Date().toISOString() }),
+      completeAssessment: (scores) => {
+        set({ bodyAreaScores: scores, assessmentCompletedAt: new Date().toISOString() })
+        get().ensureDailyMobilityPlan(true)
+      },
+
+      ensureDailyMobilityPlan: (force) => {
+        const s = get()
+        const today = new Date().toISOString().slice(0, 10)
+        if (!force && s.dailyMobilityPlan?.date === today) return
+        const plan = generateDailyMobilityPlan(s.bodyAreaScores, s.excludedStretchIds, s.stretchUsageLog)
+        const stretchUsageLog = { ...s.stretchUsageLog }
+        for (const ex of plan.exercises) {
+          const id = findStretchIdByName(ex.name)
+          if (id) stretchUsageLog[id] = today
+        }
+        set({ dailyMobilityPlan: plan, stretchUsageLog })
+      },
+
+      excludeStretchFromDailyPlan: (index) => {
+        const s = get()
+        const plan = s.dailyMobilityPlan
+        const target = plan?.exercises[index]
+        if (!plan || !target) return null
+        const targetId = findStretchIdByName(target.name)
+        const excludedStretchIds = targetId ? [...s.excludedStretchIds, targetId] : s.excludedStretchIds
+        const inPlanIds = plan.exercises.map((e) => findStretchIdByName(e.name)).filter((id): id is string => !!id)
+        const replacement = pickReplacementStretch(target.targetArea, new Set([...excludedStretchIds, ...inPlanIds]), s.stretchUsageLog)
+        const exercises = replacement
+          ? plan.exercises.map((e, i) => (i === index ? toMobilityStretch(replacement) : e))
+          : plan.exercises.filter((_, i) => i !== index)
+        set({ excludedStretchIds, dailyMobilityPlan: { ...plan, exercises } })
+        return exercises
+      },
+
+      substituteDailyPlanStretch: (index, replacementStretchId) => {
+        const s = get()
+        const plan = s.dailyMobilityPlan
+        const target = plan?.exercises[index]
+        const replacement = STRETCH_LIBRARY.find((st) => st.id === replacementStretchId)
+        if (!plan || !target || !replacement) return null
+        const targetId = findStretchIdByName(target.name)
+        const excludedStretchIds = targetId ? [...s.excludedStretchIds, targetId] : s.excludedStretchIds
+        const exercises = plan.exercises.map((e, i) => (i === index ? toMobilityStretch(replacement) : e))
+        set({ excludedStretchIds, dailyMobilityPlan: { ...plan, exercises } })
+        return exercises
+      },
 
       updateProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
       updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),

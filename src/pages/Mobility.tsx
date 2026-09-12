@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, SkipBack, Timer, ClipboardCheck, ChevronRight,
-  ChevronLeft, BookOpen, Play, RotateCcw, ListChecks, Info,
+  ChevronLeft, BookOpen, Play, RotateCcw, ListChecks, Info, MoreVertical, Repeat, EyeOff,
 } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
-import { DAILY_AI_ROUTINE } from '../data/mobility'
 import { STRETCH_LIBRARY } from '../data/stretches'
-import type { BodyAreaScore, MobilityRoutine } from '../types'
+import type { BodyAreaScore, MobilityRoutine, MobilityStretch } from '../types'
 import Sheet from '../components/Sheet'
 import StretchAnimation, { hasStretchAnimation } from '../components/StretchAnimation'
+import StretchPicker from '../components/StretchPicker'
 import { useDragScroll } from '../lib/useDragScroll'
 import { relativeDate, formatClockTime } from '../lib/format'
 import { speakAnnouncement } from '../lib/sound'
+
+const DAILY_PLAN_ID = 'ai-daily'
 
 const DURATION_OPTIONS = [5, 10, 15, 20, 30]
 
@@ -35,6 +37,8 @@ export default function Mobility() {
   const deleteMobilityRoutine = useWorkoutStore((s) => s.deleteMobilityRoutine)
   const logMobilitySession = useWorkoutStore((s) => s.logMobilitySession)
   const setMobilitySessionActive = useWorkoutStore((s) => s.setMobilitySessionActive)
+  const dailyMobilityPlan = useWorkoutStore((s) => s.dailyMobilityPlan)
+  const ensureDailyMobilityPlan = useWorkoutStore((s) => s.ensureDailyMobilityPlan)
 
   const [durationPickerFor, setDurationPickerFor] = useState<MobilityRoutine | null>(null)
   const [activeRoutine, setActiveRoutine] = useState<MobilityRoutine | null>(null)
@@ -42,11 +46,27 @@ export default function Mobility() {
   const scoresScrollRef = useDragScroll<HTMLDivElement>()
 
   useEffect(() => {
+    ensureDailyMobilityPlan()
+  }, [ensureDailyMobilityPlan])
+
+  useEffect(() => {
     setMobilitySessionActive(!!activeRoutine)
     return () => setMobilitySessionActive(false)
   }, [activeRoutine, setMobilitySessionActive])
 
   const overallScore = Math.round(bodyAreaScores.reduce((n, s) => n + s.scorePercentage, 0) / (bodyAreaScores.length || 1))
+
+  const dailyRoutine: MobilityRoutine = {
+    id: DAILY_PLAN_ID,
+    title: 'Daily AI Mobility Protocol',
+    description: dailyMobilityPlan?.focusAreas.length
+      ? `Focused on your weakest areas: ${dailyMobilityPlan.focusAreas.join(', ')}`
+      : 'Customized to your mobility assessment',
+    durationMinutes: 15,
+    isAiGenerated: true,
+    isCustom: false,
+    exercises: dailyMobilityPlan?.exercises ?? [],
+  }
 
   return (
     <div className="px-4 pb-8 pt-2">
@@ -118,11 +138,12 @@ export default function Mobility() {
         <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
           <Sparkles size={12} /> Daily AI Customized Routine
         </div>
-        <p className="text-base font-bold">{DAILY_AI_ROUTINE.title}</p>
-        <p className="mt-0.5 text-xs text-white/50">{DAILY_AI_ROUTINE.description}</p>
+        <p className="text-base font-bold">{dailyRoutine.title}</p>
+        <p className="mt-0.5 text-xs text-white/50">{dailyRoutine.description}</p>
         <button
-          onClick={() => setDurationPickerFor(DAILY_AI_ROUTINE)}
-          className="mt-3 w-full rounded-lg bg-emerald-500 py-2.5 text-xs font-bold"
+          onClick={() => setDurationPickerFor(dailyRoutine)}
+          disabled={dailyRoutine.exercises.length === 0}
+          className="mt-3 w-full rounded-lg bg-emerald-500 py-2.5 text-xs font-bold disabled:opacity-40"
         >
           Start Today's Routine
         </button>
@@ -250,18 +271,44 @@ function MobilitySessionSheet({
   onClose: () => void
 }) {
   const soundEffectsEnabled = useWorkoutStore((s) => s.settings.soundEffectsEnabled)
+  const excludeStretchFromDailyPlan = useWorkoutStore((s) => s.excludeStretchFromDailyPlan)
+  const substituteDailyPlanStretch = useWorkoutStore((s) => s.substituteDailyPlanStretch)
+  const [exercises, setExercises] = useState<MobilityStretch[]>(routine.exercises)
   const [index, setIndex] = useState(0)
-  const [remaining, setRemaining] = useState(routine.exercises[0]?.durationSeconds ?? 0)
+  const [remaining, setRemaining] = useState(exercises[0]?.durationSeconds ?? 0)
   const [running, setRunning] = useState(false)
   const [startedAt] = useState(Date.now())
-  const current = routine.exercises[index]
-  const isLast = index + 1 >= routine.exercises.length
+  const [actionMenuOpen, setActionMenuOpen] = useState(false)
+  const [substituteOpen, setSubstituteOpen] = useState(false)
+  const current = exercises[index]
+  const isLast = index + 1 >= exercises.length
   const libraryMatch = useMemo(() => STRETCH_LIBRARY.find((s) => s.name === current?.name), [current])
+  const canManage = routine.isAiGenerated && routine.id === DAILY_PLAN_ID
 
   useEffect(() => {
-    setRemaining(routine.exercises[index]?.durationSeconds ?? 0)
+    setRemaining(exercises[index]?.durationSeconds ?? 0)
     setRunning(false)
-  }, [index, routine])
+  }, [index, exercises])
+
+  function exclude() {
+    setActionMenuOpen(false)
+    const updated = excludeStretchFromDailyPlan(index)
+    if (!updated) return
+    if (updated.length < exercises.length) {
+      // No replacement was available in this area — the slot is just gone.
+      setExercises((prev) => prev.filter((_, i) => i !== index))
+      if (index >= updated.length && index > 0) setIndex(index - 1)
+    } else {
+      setExercises((prev) => prev.map((e, i) => (i === index ? { ...e, name: updated[index].name, targetArea: updated[index].targetArea } : e)))
+    }
+  }
+
+  function substitute(replacementId: string) {
+    setSubstituteOpen(false)
+    const updated = substituteDailyPlanStretch(index, replacementId)
+    if (!updated) return
+    setExercises((prev) => prev.map((e, i) => (i === index ? { ...e, name: updated[index].name, targetArea: updated[index].targetArea } : e)))
+  }
 
   useEffect(() => {
     if (!running || remaining <= 0) return
@@ -314,6 +361,15 @@ function MobilitySessionSheet({
           >
             <RotateCcw size={15} />
           </button>
+          {canManage && (
+            <button
+              onClick={() => setActionMenuOpen(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised text-white/70"
+              aria-label="Stretch options"
+            >
+              <MoreVertical size={15} />
+            </button>
+          )}
           <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised" aria-label="Close">
             <X size={16} />
           </button>
@@ -322,7 +378,7 @@ function MobilitySessionSheet({
 
       <div className="flex-1 overflow-y-auto px-5 pb-4">
         <p className="mb-1 text-center text-xs font-bold text-white/40">
-          Exercise {index + 1} of {routine.exercises.length}
+          Exercise {index + 1} of {exercises.length}
         </p>
         <p className="mb-1 text-center text-xl font-extrabold">{current.name}</p>
         <p className="mb-4 text-center text-sm text-white/50">Target: {current.targetArea}</p>
@@ -395,6 +451,51 @@ function MobilitySessionSheet({
           </button>
         </div>
       </div>
+
+      {canManage && (
+        <Sheet open={actionMenuOpen} onClose={() => setActionMenuOpen(false)} title={current.name}>
+          <div className="space-y-2 p-4">
+            <button
+              onClick={() => {
+                setActionMenuOpen(false)
+                setSubstituteOpen(true)
+              }}
+              className="flex w-full items-center gap-3 rounded-xl bg-surface-higher px-4 py-3.5 text-left"
+            >
+              <Repeat size={17} className="text-emerald-400" />
+              <div>
+                <p className="text-sm font-semibold">Substitute this stretch</p>
+                <p className="text-xs text-white/40">Pick another {current.targetArea} stretch for today</p>
+              </div>
+            </button>
+            <button
+              onClick={exclude}
+              className="flex w-full items-center gap-3 rounded-xl bg-surface-higher px-4 py-3.5 text-left"
+            >
+              <EyeOff size={17} className="text-red-400" />
+              <div>
+                <p className="text-sm font-semibold">Exclude from daily routines</p>
+                <p className="text-xs text-white/40">Never suggest this stretch again</p>
+              </div>
+            </button>
+          </div>
+        </Sheet>
+      )}
+
+      {canManage && (
+        <StretchPicker
+          open={substituteOpen}
+          onClose={() => setSubstituteOpen(false)}
+          multi={false}
+          allowCustom={false}
+          initialArea={current.targetArea}
+          hideIds={libraryMatch ? [libraryMatch.id] : []}
+          onSelect={([picked]) => {
+            const replacement = STRETCH_LIBRARY.find((s) => s.name === picked.name)
+            if (replacement) substitute(replacement.id)
+          }}
+        />
+      )}
     </div>
   )
 }

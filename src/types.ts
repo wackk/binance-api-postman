@@ -169,6 +169,14 @@ export interface Stretch {
   type: 'passive' | 'active'
 }
 
+/** The AI-generated set of stretches for a given calendar day, cached so reopening the app the same day doesn't reshuffle it. */
+export interface DailyMobilityPlan {
+  date: string
+  /** Assessment area names this plan was built around, for display (e.g. "Focused on: Hips, Shoulders"). */
+  focusAreas: string[]
+  exercises: MobilityStretch[]
+}
+
 export interface MobilityRoutine {
   id: string
   title: string
