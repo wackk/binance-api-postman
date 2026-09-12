@@ -18,6 +18,7 @@ export const DAILY_AI_ROUTINE: MobilityRoutine = {
   isCustom: false,
   exercises: [
     { name: 'Deep Squat Hold', durationSeconds: 120, targetArea: 'Ankles & Hips' },
+    { name: 'Cat-Cow', durationSeconds: 60, targetArea: 'T-Spine' },
     { name: 'Wall Shoulder Flexion Stretch', durationSeconds: 120, targetArea: 'Shoulders' },
     { name: 'Massage Gun: Deltoids', durationSeconds: 45, targetArea: 'Shoulders' },
     { name: 'Pigeon Pose', durationSeconds: 180, targetArea: 'Hips' },

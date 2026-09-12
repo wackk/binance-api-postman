@@ -8,7 +8,8 @@ const st = (
   defaultDurationSeconds: number,
   instructions: string[],
   cue?: string,
-): Stretch => ({ id, name, targetArea, equipment, defaultDurationSeconds, instructions, cue })
+  type: 'passive' | 'active' = 'passive',
+): Stretch => ({ id, name, targetArea, equipment, defaultDurationSeconds, instructions, cue, type })
 
 export const STRETCH_LIBRARY: Stretch[] = [
   // ---- Neck ----
@@ -63,12 +64,12 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Hold a towel or resistance band with a wide overhand grip in front of you.',
     'Keeping your arms straight, raise it overhead and continue back behind you as far as comfortable.',
     'Reverse the motion back to the front, moving slowly and smoothly for the set duration.',
-  ], 'Widen your grip if your shoulders feel pinched.'),
+  ], 'Widen your grip if your shoulders feel pinched.', 'active'),
   st('shoulder-rolls', 'Shoulder Rolls', 'Shoulders', 'None', 30, [
     'Stand tall with your arms relaxed at your sides.',
     'Roll both shoulders up, back, and down in a smooth circular motion.',
     'Continue for several rotations, then reverse direction.',
-  ]),
+  ], undefined, 'active'),
 
   // ---- Chest ----
   st('doorway-chest-stretch', 'Doorway Chest Stretch', 'Chest', 'Wall', 30, [
@@ -102,7 +103,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Start on hands and knees with wrists under shoulders and knees under hips.',
     'Inhale, drop your belly, and lift your chest and tailbone (cow).',
     'Exhale, round your spine up toward the ceiling and tuck your chin (cat). Alternate smoothly.',
-  ]),
+  ], undefined, 'active'),
   st('thread-the-needle', 'Thread the Needle', 'Upper Back', 'None', 30, [
     'Start on hands and knees.',
     'Slide your right arm underneath your body and across to the left, resting your shoulder and head on the floor.',
@@ -205,7 +206,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Extend your arms in front of you and make loose fists.',
     'Rotate your wrists in circles, several reps in each direction.',
     'Keep the motion slow and controlled throughout.',
-  ]),
+  ], undefined, 'active'),
   st('wall-wrist-flexor-stretch', 'Wall Wrist Flexor Stretch', 'Forearms', 'Wall', 30, [
     'Place your palms flat on the floor or a wall at waist height, fingers pointing down, elbows straight.',
     'Lean your weight forward slightly.',
@@ -222,12 +223,12 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Start with your fingers fully extended and straight.',
     'Slowly curl your fingers into a hook, then a full fist, then a straight-fingers fist, pausing briefly at each position.',
     'Repeat the sequence slowly for several cycles.',
-  ]),
+  ], undefined, 'active'),
   st('rubber-band-finger-extension', 'Rubber Band Finger Extension', 'Finger & Grip', 'Other', 30, [
     'Place a rubber band around all five fingertips of one hand.',
     'Spread your fingers apart against the band’s resistance.',
     'Return with control and repeat for reps.',
-  ], 'Great for balancing out heavy gripping work — trains the often-neglected extensors.'),
+  ], 'Great for balancing out heavy gripping work — trains the often-neglected extensors.', 'active'),
   st('thumb-extension-stretch', 'Thumb Extension Stretch', 'Finger & Grip', 'None', 20, [
     'Hold one hand out and gently pull your thumb back and away from your palm with the other hand.',
     'Hold, feeling a stretch at the base of the thumb.',
@@ -357,7 +358,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Kneel in a half-kneeling lunge position.',
     'Gently rock your hips forward and back, keeping your torso upright.',
     'Continue for several slow reps, then switch sides.',
-  ]),
+  ], undefined, 'active'),
   st('low-lunge-stretch', 'Low Lunge Stretch', 'Hip Flexors', 'None', 30, [
     'Step one foot forward into a deep lunge, back knee down on the floor.',
     'Lift your torso tall and press your hips forward and down.',
@@ -475,7 +476,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Hold a wall for balance and swing one leg forward and back in a controlled, pendulum motion.',
     'Gradually increase range as your hips warm up.',
     'Continue for the set time, then switch legs.',
-  ]),
+  ], undefined, 'active'),
 
   // ---- Calves ----
   st('standing-calf-stretch', 'Standing Calf Stretch', 'Calves', 'Wall', 30, [
@@ -492,7 +493,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'From a downward dog position (hips up, hands and feet on the floor), bend one knee.',
     'Press the opposite heel toward the floor, then switch, "pedaling" the feet.',
     'Continue alternating for the set time.',
-  ]),
+  ], undefined, 'active'),
   st('seated-calf-stretch-towel', 'Seated Calf Stretch with Towel', 'Calves', 'Strap or Towel', 30, [
     'Sit with one leg extended straight, looping a towel around the ball of that foot.',
     'Gently pull the towel to draw your toes back toward you.',
@@ -509,7 +510,7 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Sit or stand and lift one foot slightly off the floor.',
     'Rotate your ankle in slow circles, several reps each direction.',
     'Switch feet and repeat.',
-  ]),
+  ], undefined, 'active'),
   st('kneeling-ankle-dorsiflexion-stretch', 'Kneeling Ankle Dorsiflexion Stretch', 'Ankles', 'Wall', 30, [
     'Kneel in a half-kneeling position facing a wall, front foot a few inches away.',
     'Keeping your heel flat, drive your knee forward over your toes toward the wall.',
@@ -536,32 +537,32 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Step into a deep lunge with your back leg straight behind you.',
     'Place both hands inside your front foot, then rotate your front-side elbow up toward the ceiling.',
     'Return your hand down and straighten your front leg to add a hamstring stretch, then switch sides.',
-  ]),
+  ], undefined, 'active'),
   st('inchworm', 'Inchworm', 'Full Body', 'None', 45, [
     'Stand tall, then hinge forward and walk your hands out to a plank position.',
     'Hold briefly, then walk your feet up toward your hands.',
     'Stand back up tall and repeat for several reps.',
-  ]),
+  ], undefined, 'active'),
   st('walking-lunge-with-twist', 'Walking Lunge with Twist', 'Full Body', 'None', 45, [
     'Step forward into a lunge, back knee hovering just above the floor.',
     'Rotate your torso toward the front leg, reaching both arms around.',
     'Return to center, stand, and repeat on the other side as you walk forward.',
-  ]),
+  ], undefined, 'active'),
   st('arm-circles', 'Arm Circles', 'Full Body', 'None', 30, [
     'Stand tall and extend both arms out to the sides at shoulder height.',
     'Make small circles, gradually increasing the size.',
     'Reverse direction halfway through.',
-  ]),
+  ], undefined, 'active'),
   st('standing-side-to-side-sway', 'Standing Side-to-Side Sway', 'Full Body', 'None', 30, [
     'Stand with feet wide apart.',
     'Shift your weight from one leg to the other in a smooth, continuous rocking motion, bending the loaded knee.',
     'Keep your chest up and continue for the set time.',
-  ]),
+  ], undefined, 'active'),
   st('sun-salutation-flow', 'Sun Salutation Flow', 'Full Body', 'None', 60, [
     'Start standing tall, reach your arms overhead, then fold forward into a forward fold.',
     'Step back into a plank, lower down, then press up into a gentle backbend (cobra).',
     'Push back into downward dog, then walk or hop forward and stand back up. Repeat the flow smoothly.',
-  ]),
+  ], undefined, 'active'),
   st('deep-squat-hold', 'Deep Squat Hold', 'Ankles', 'None', 60, [
     'Stand with feet slightly wider than shoulder width, toes turned out slightly.',
     'Squat down as low as you can, keeping your heels flat on the floor.',
@@ -674,6 +675,103 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Move through calves, quads, glutes, lower back, upper back, and shoulders in sequence.',
     'Keep the gun moving continuously and avoid all joints and bones throughout.',
   ]),
+
+  // ---- Active (movement-based) mobility drills ----
+  st('neck-circles', 'Neck Circles', 'Neck', 'None', 30, [
+    'Slowly tilt your head down and begin circling it toward one shoulder, then back, then the other shoulder.',
+    'Complete slow circles in one direction for half the time, then reverse.',
+    'Keep the movement slow and stop anywhere that feels pinchy or painful.',
+  ], undefined, 'active'),
+  st('shoulder-blade-squeezes', 'Shoulder Blade Squeezes', 'Shoulders', 'None', 30, [
+    'Stand or sit tall with arms relaxed at your sides.',
+    'Squeeze your shoulder blades together and down, hold for a second, then release.',
+    'Repeat in a slow, controlled rhythm for the set time.',
+  ], undefined, 'active'),
+  st('standing-chest-opener-pulses', 'Standing Chest Opener Pulses', 'Chest', 'None', 30, [
+    'Stand tall and bring your arms behind you with hands clasped or fingers interlaced.',
+    'Gently pulse your arms up and away from your back in small repeated movements.',
+    'Keep your chest lifted and continue for the set time.',
+  ], undefined, 'active'),
+  st('thoracic-rotation-reach', 'Thoracic Rotation Reach', 'Upper Back', 'None', 30, [
+    'Start on hands and knees, or half-kneeling, with one hand behind your head.',
+    'Rotate that elbow down toward the opposite arm, then open it up toward the ceiling.',
+    'Repeat the rotation smoothly for the set time, then switch sides.',
+  ], undefined, 'active'),
+  st('standing-side-reach-pulses', 'Standing Side Reach Pulses', 'Lats', 'None', 30, [
+    'Stand tall and reach one arm overhead.',
+    'Gently pulse your torso side to side, reaching a little further with each pulse.',
+    'Continue for the set time, then switch sides.',
+  ], undefined, 'active'),
+  st('overhead-triceps-pulses', 'Overhead Triceps Pulses', 'Triceps', 'None', 30, [
+    'Raise one arm overhead and bend the elbow, hand behind your head.',
+    'Use your other hand to gently pulse the elbow further back in small repeated movements.',
+    'Continue for the set time, then switch sides.',
+  ], undefined, 'active'),
+  st('arm-swings', 'Arm Swings', 'Biceps', 'None', 30, [
+    'Stand tall and swing both arms forward and backward like a relaxed pendulum.',
+    'Gradually increase the range of motion as your shoulders and arms warm up.',
+    'Continue for the set time.',
+  ], undefined, 'active'),
+  st('wrist-flexion-extension-pumps', 'Wrist Flexion & Extension Pumps', 'Forearms', 'None', 30, [
+    'Extend both arms in front of you, palms down.',
+    'Flex your wrists up and down repeatedly in a smooth pumping motion.',
+    'Continue for the set time.',
+  ], undefined, 'active'),
+  st('finger-walks-on-wall', 'Finger Walks on Wall', 'Finger & Grip', 'Wall', 30, [
+    'Stand facing a wall and place your fingertips on it at waist height.',
+    '"Walk" your fingers up the wall as high as you can, then walk them back down.',
+    'Repeat the up-and-down walk for the set time.',
+  ], undefined, 'active'),
+  st('standing-cat-cow', 'Standing Cat-Cow', 'Abs', 'None', 30, [
+    'Stand with hands on your thighs, knees slightly bent.',
+    'Round your spine and tuck your chin (like cat), then arch your back and lift your chest (like cow).',
+    'Alternate smoothly between the two positions for the set time.',
+  ], undefined, 'active'),
+  st('standing-trunk-rotations', 'Standing Trunk Rotations', 'Obliques', 'None', 30, [
+    'Stand with feet shoulder-width apart and arms bent at your sides.',
+    'Rotate your torso side to side in a controlled, rhythmic twist.',
+    'Keep your hips as stable as possible and continue for the set time.',
+  ], undefined, 'active'),
+  st('pelvic-tilts', 'Pelvic Tilts', 'Lower Back', 'None', 30, [
+    'Lie on your back with knees bent, feet flat on the floor.',
+    'Flatten your lower back into the floor by tilting your pelvis, then arch it slightly.',
+    'Alternate slowly and smoothly for the set time.',
+  ], undefined, 'active'),
+  st('fire-hydrants', 'Fire Hydrants', 'Glutes', 'None', 30, [
+    'Start on hands and knees with your back flat.',
+    'Keeping your knee bent, lift one leg out to the side to hip height.',
+    'Lower with control and repeat, then switch sides.',
+  ], undefined, 'active'),
+  st('standing-marching', 'Standing Marching', 'Hip Flexors', 'None', 30, [
+    'Stand tall and lift one knee toward your chest, then lower it.',
+    'Alternate legs in a slow, controlled marching motion.',
+    'Continue for the set time, keeping your torso upright.',
+  ], undefined, 'active'),
+  st('lateral-lunges', 'Lateral Lunges', 'Adductors', 'None', 30, [
+    'Stand with feet wide apart.',
+    'Shift your weight to one side, bending that knee into a lunge while keeping the other leg straight.',
+    'Push back to center and repeat on the other side, alternating for the set time.',
+  ], undefined, 'active'),
+  st('standing-hip-abduction-kicks', 'Standing Hip Abduction Kicks', 'Abductors', 'Wall', 30, [
+    'Stand beside a wall for balance.',
+    'Lift your outside leg out to the side in a controlled kick, then lower it.',
+    'Repeat for the set time, then switch sides.',
+  ], undefined, 'active'),
+  st('butt-kicks', 'Butt Kicks', 'Quadriceps', 'None', 30, [
+    'Stand tall or jog lightly in place.',
+    'Kick your heels back toward your glutes one at a time in a light jogging rhythm.',
+    'Continue for the set time.',
+  ], undefined, 'active'),
+  st('calf-raises', 'Calf Raises', 'Calves', 'None', 30, [
+    'Stand tall, feet hip-width apart, holding a wall or chair for balance if needed.',
+    'Rise up onto your toes, then lower back down with control.',
+    'Repeat for the set time.',
+  ], undefined, 'active'),
+  st('ankle-alphabet', 'Ankle Alphabet', 'Ankles', 'None', 30, [
+    'Sit or lie down and lift one foot slightly off the floor.',
+    'Use your big toe to "write" the letters of the alphabet in the air.',
+    'Get through as much of the alphabet as you can, then switch feet.',
+  ], undefined, 'active'),
 ]
 
 export const STRETCH_TARGET_AREAS: string[] = [

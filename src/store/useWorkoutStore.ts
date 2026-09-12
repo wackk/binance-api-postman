@@ -146,6 +146,8 @@ interface WorkoutStore {
   activeWorkout: ActiveWorkoutSession | null
   restTimer: RestTimerState
   utilityTimer: UtilityTimerState
+  mobilitySessionActive: boolean
+  setMobilitySessionActive: (active: boolean) => void
   climbs: ClimbEntry[]
   mobilityRoutines: MobilityRoutine[]
   mobilityLogs: MobilityLog[]
@@ -550,6 +552,8 @@ export const useWorkoutStore = create<WorkoutStore>()(
         stopwatchRunning: false,
         stopwatchStartedAt: null,
       },
+      mobilitySessionActive: false,
+      setMobilitySessionActive: (active) => set({ mobilitySessionActive: active }),
       climbs: [],
       mobilityRoutines: [],
       mobilityLogs: [],

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight,
-  ChevronLeft, BookOpen, Play, Pause, RotateCcw, ListChecks, Info,
+  Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, SkipBack, Timer, ClipboardCheck, ChevronRight,
+  ChevronLeft, BookOpen, Play, RotateCcw, ListChecks, Info,
 } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { DAILY_AI_ROUTINE } from '../data/mobility'
@@ -34,11 +34,17 @@ export default function Mobility() {
   const mobilityRoutines = useWorkoutStore((s) => s.mobilityRoutines)
   const deleteMobilityRoutine = useWorkoutStore((s) => s.deleteMobilityRoutine)
   const logMobilitySession = useWorkoutStore((s) => s.logMobilitySession)
+  const setMobilitySessionActive = useWorkoutStore((s) => s.setMobilitySessionActive)
 
   const [durationPickerFor, setDurationPickerFor] = useState<MobilityRoutine | null>(null)
   const [activeRoutine, setActiveRoutine] = useState<MobilityRoutine | null>(null)
   const [assessmentOpen, setAssessmentOpen] = useState(false)
   const scoresScrollRef = useDragScroll<HTMLDivElement>()
+
+  useEffect(() => {
+    setMobilitySessionActive(!!activeRoutine)
+    return () => setMobilitySessionActive(false)
+  }, [activeRoutine, setMobilitySessionActive])
 
   const overallScore = Math.round(bodyAreaScores.reduce((n, s) => n + s.scorePercentage, 0) / (bodyAreaScores.length || 1))
 
@@ -249,6 +255,7 @@ function MobilitySessionSheet({
   const [running, setRunning] = useState(false)
   const [startedAt] = useState(Date.now())
   const current = routine.exercises[index]
+  const isLast = index + 1 >= routine.exercises.length
   const libraryMatch = useMemo(() => STRETCH_LIBRARY.find((s) => s.name === current?.name), [current])
 
   useEffect(() => {
@@ -278,8 +285,12 @@ function MobilitySessionSheet({
     setRemaining(current?.durationSeconds ?? 0)
   }
 
+  function previous() {
+    if (index > 0) setIndex((i) => i - 1)
+  }
+
   function next() {
-    if (index + 1 < routine.exercises.length) {
+    if (!isLast) {
       setIndex((i) => i + 1)
     } else {
       onFinish(Math.round((Date.now() - startedAt) / 1000))
@@ -295,9 +306,18 @@ function MobilitySessionSheet({
           <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-400">Active Mobility Session</p>
           <p className="text-base font-bold">{routine.title}</p>
         </div>
-        <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised" aria-label="Close">
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={restart}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised text-white/70"
+            aria-label="Restart timer"
+          >
+            <RotateCcw size={15} />
+          </button>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-raised" aria-label="Close">
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-4">
@@ -305,23 +325,17 @@ function MobilitySessionSheet({
           Exercise {index + 1} of {routine.exercises.length}
         </p>
         <p className="mb-1 text-center text-xl font-extrabold">{current.name}</p>
-        <p className="mb-5 text-center text-sm text-white/50">Target: {current.targetArea}</p>
+        <p className="mb-4 text-center text-sm text-white/50">Target: {current.targetArea}</p>
 
-        <div className="mb-5 flex justify-center">
-          <div
-            className={`flex h-36 w-36 items-center justify-center rounded-full bg-surface-raised ring-4 ${
-              running ? 'ring-emerald-400/30' : 'ring-white/10'
-            }`}
-          >
-            <span className="text-3xl font-extrabold tabular-nums">{formatClockTime(remaining)}</span>
-          </div>
-        </div>
-
-        {libraryMatch && hasStretchAnimation(libraryMatch.id) && (
-          <div className="mb-5">
+        <div className="mb-4">
+          {libraryMatch && hasStretchAnimation(libraryMatch.id) ? (
             <StretchAnimation stretchId={libraryMatch.id} />
-          </div>
-        )}
+          ) : (
+            <div className="flex h-40 items-center justify-center rounded-xl bg-surface-higher text-xs text-white/30">
+              No animation available yet
+            </div>
+          )}
+        </div>
 
         {libraryMatch ? (
           <div className="mb-3">
@@ -348,38 +362,38 @@ function MobilitySessionSheet({
         )}
       </div>
 
-      <div className="shrink-0 space-y-2.5 border-t border-surface-border px-4 pb-8 pt-3">
-        <div className="flex items-center justify-center gap-3">
+      <div className="shrink-0 border-t border-surface-border px-4 pb-8 pt-4">
+        <div className="flex items-center justify-center gap-5">
           <button
-            onClick={restart}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-higher text-white/70"
-            aria-label="Restart timer"
+            onClick={previous}
+            disabled={index === 0}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-higher text-white/70 disabled:opacity-30"
+            aria-label="Previous stretch"
           >
-            <RotateCcw size={17} />
+            <SkipBack size={20} />
           </button>
           <button
             onClick={toggleRunning}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white"
+            className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-white ring-4 ${
+              running ? 'ring-emerald-400/40' : 'ring-white/10'
+            }`}
             aria-label={running ? 'Pause timer' : 'Start timer'}
           >
-            {running ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" />}
+            <span className="text-lg font-extrabold tabular-nums">{formatClockTime(remaining)}</span>
+            {!running && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/35">
+                <Play size={24} fill="white" />
+              </span>
+            )}
           </button>
-          <div className="h-11 w-11" />
+          <button
+            onClick={next}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-higher text-white/70"
+            aria-label={isLast ? 'Complete protocol' : 'Next stretch'}
+          >
+            {isLast ? <Check size={20} /> : <SkipForward size={20} />}
+          </button>
         </div>
-        <p className="text-center text-[11px] text-white/30">
-          {running ? 'Timer running — tap Next anytime to move on.' : 'Read the instructions, then tap play to start the timer.'}
-        </p>
-        <button onClick={next} className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold">
-          {index + 1 < routine.exercises.length ? (
-            <>
-              <SkipForward size={16} /> Next Stretch
-            </>
-          ) : (
-            <>
-              <Check size={16} /> Complete Protocol
-            </>
-          )}
-        </button>
       </div>
     </div>
   )

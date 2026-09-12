@@ -165,6 +165,8 @@ export interface Stretch {
   defaultDurationSeconds: number
   instructions: string[]
   cue?: string
+  /** passive = held stretch; active = repeated movement through a range of motion. */
+  type: 'passive' | 'active'
 }
 
 export interface MobilityRoutine {

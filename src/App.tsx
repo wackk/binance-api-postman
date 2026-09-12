@@ -42,8 +42,9 @@ function UtilityTimerWatcher() {
 function ScreenChrome() {
   const location = useLocation()
   const activeWorkout = useWorkoutStore((s) => s.activeWorkout)
+  const mobilitySessionActive = useWorkoutStore((s) => s.mobilitySessionActive)
   const isActiveWorkoutScreen = location.pathname === '/workout/active'
-  const showBottomNav = !isActiveWorkoutScreen
+  const showBottomNav = !isActiveWorkoutScreen && !mobilitySessionActive
 
   return (
     <div className="flex h-full flex-col bg-surface text-white">
