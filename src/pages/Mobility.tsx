@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { DAILY_AI_ROUTINE } from '../data/mobility'
 import type { BodyAreaScore, MobilityRoutine } from '../types'
@@ -41,7 +41,15 @@ export default function Mobility() {
       <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
         <Sparkles size={13} /> Flexibility & Range of Motion
       </p>
-      <h1 className="mb-4 text-2xl font-extrabold">Mobility</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-extrabold">Mobility</h1>
+        <button
+          onClick={() => navigate('/stretches')}
+          className="flex items-center gap-1.5 rounded-lg bg-surface-raised px-2.5 py-1.5 text-xs font-semibold text-emerald-400"
+        >
+          <BookOpen size={14} /> Stretch Library
+        </button>
+      </div>
 
       <div className="mb-4 rounded-xl bg-surface-raised p-4">
         <div className="mb-3 flex items-center justify-between">

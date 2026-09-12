@@ -261,6 +261,58 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     'Lower back down with control.',
   ]),
 
+  // ---- Finger & Grip ----
+  ex('dead-hang', 'Dead Hang', 'Finger & Grip', 'Bodyweight', 'duration', ['Forearms', 'Back'], [
+    'Grip a pull-up bar with hands slightly wider than shoulder width.',
+    'Let your body hang fully with arms straight and shoulders relaxed but engaged.',
+    'Hold for time, keeping your grip firm without swinging.',
+  ]),
+  ex('fat-grip-dead-hang', 'Fat Bar Dead Hang', 'Finger & Grip', 'Other', 'duration', ['Forearms'], [
+    'Use a thick bar, towel wrap, or Fat Gripz attachment on a pull-up bar.',
+    'Grip it as securely as possible and hang with arms fully extended.',
+    'Hold for time, resisting the urge to let the bar roll out of your hand.',
+  ]),
+  ex('plate-pinch', 'Plate Pinch Hold', 'Finger & Grip', 'Plate', 'duration', ['Forearms'], [
+    'Pinch two weight plates together (smooth sides out) between your fingers and thumb.',
+    'Lift them off the floor or a rack and hold at your side.',
+    'Keep your wrist straight and hold for time without letting the plates slide apart.',
+  ]),
+  ex('hand-gripper', 'Hand Gripper Squeeze', 'Finger & Grip', 'Other', 'reps_only', ['Forearms'], [
+    'Hold a gripper in one hand with the handles against your palm and fingers.',
+    'Squeeze the handles together until they close or for maximum effort.',
+    'Release with control and repeat for reps, then switch hands.',
+  ]),
+  ex('fingertip-pushup', 'Fingertip Push-Up', 'Finger & Grip', 'Bodyweight', 'bodyweight_reps', ['Chest', 'Triceps'], [
+    'Set up in a push-up position balanced on your fingertips instead of flat palms.',
+    'Lower your chest toward the floor with elbows at about 45°.',
+    'Press back up to full extension, keeping fingers spread and rigid throughout.',
+  ]),
+  ex('wrist-roller', 'Wrist Roller', 'Finger & Grip', 'Other', 'reps_only', ['Forearms'], [
+    'Hold a wrist roller device at shoulder height with arms extended in front of you.',
+    'Rotate your wrists to wind the rope up and lift the weight.',
+    'Reverse the motion to lower it back down under control.',
+  ]),
+  ex('towel-pull-up-hang', 'Towel Grip Hang', 'Finger & Grip', 'Other', 'duration', ['Forearms', 'Back'], [
+    'Drape two towels over a pull-up bar and grip one in each hand.',
+    'Hang with arms extended, gripping the fabric as tightly as possible.',
+    'Hold for time, keeping your shoulders active and core braced.',
+  ]),
+  ex('rice-bucket-twist', 'Rice Bucket Rotations', 'Finger & Grip', 'Other', 'reps_only', ['Forearms'], [
+    'Bury your hand in a bucket of rice up to the wrist.',
+    'Open and close your fist, then rotate and twist your wrist through the rice.',
+    'Continue for the target reps or time, then switch hands.',
+  ]),
+  ex('one-arm-dead-hang', 'One-Arm Dead Hang', 'Finger & Grip', 'Bodyweight', 'duration', ['Forearms', 'Back'], [
+    'Grip a pull-up bar with one hand, using an assist band or the other hand lightly for balance if needed.',
+    'Hang with the working arm fully extended and shoulder engaged.',
+    'Hold for time, then switch sides.',
+  ]),
+  ex('finger-curl', 'Barbell Finger Curl', 'Finger & Grip', 'Barbell', 'weight_reps', ['Forearms'], [
+    'Hold a light barbell with an overhand grip, letting it roll down to your fingertips.',
+    'Curl your fingers to roll the bar back up into your palms.',
+    'Lower with control and repeat.',
+  ]),
+
   // ---- Abs ----
   ex('crunch', 'Crunch', 'Abs', 'Bodyweight', 'bodyweight_reps', [], [
     'Lie on your back with knees bent and hands lightly behind your head.',
@@ -463,7 +515,7 @@ export const EXERCISE_LIBRARY: Exercise[] = [
 export const MUSCLE_GROUPS: Exercise['category'][] = [
   'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms', 'Abs',
   'Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Cardio', 'Full Body',
-  'Traps', 'Lats', 'Neck', 'Adductors', 'Abductors',
+  'Traps', 'Lats', 'Neck', 'Adductors', 'Abductors', 'Finger & Grip',
 ]
 
 export const EQUIPMENT_TYPES: Exercise['equipment'][] = [

@@ -3,11 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2, GripVertical } from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import ConfirmDialog from '../components/ConfirmDialog'
+import StretchPicker from '../components/StretchPicker'
 import type { MobilityStretch } from '../types'
-
-function blankStretch(): MobilityStretch {
-  return { name: '', durationSeconds: 60, targetArea: '' }
-}
 
 export default function MobilityRoutineEditor({ mode }: { mode: 'create' | 'edit' }) {
   const navigate = useNavigate()
@@ -22,15 +19,16 @@ export default function MobilityRoutineEditor({ mode }: { mode: 'create' | 'edit
   const [title, setTitle] = useState(existing?.title ?? '')
   const [description, setDescription] = useState(existing?.description ?? '')
   const [durationMinutes, setDurationMinutes] = useState(existing?.durationMinutes ?? 15)
-  const [exercises, setExercises] = useState<MobilityStretch[]>(existing?.exercises ?? [blankStretch()])
+  const [exercises, setExercises] = useState<MobilityStretch[]>(existing?.exercises ?? [])
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (mode === 'edit' && !existing) navigate('/mobility', { replace: true })
   }, [mode, existing, navigate])
 
-  function addStretch() {
-    setExercises((prev) => [...prev, blankStretch()])
+  function addStretches(stretches: MobilityStretch[]) {
+    setExercises((prev) => [...prev, ...stretches])
   }
 
   function removeStretch(index: number) {
@@ -165,7 +163,7 @@ export default function MobilityRoutineEditor({ mode }: { mode: 'create' | 'edit
         </div>
 
         <button
-          onClick={addStretch}
+          onClick={() => setPickerOpen(true)}
           className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500 py-3 text-sm font-bold"
         >
           <Plus size={16} /> Add Stretch
@@ -180,6 +178,8 @@ export default function MobilityRoutineEditor({ mode }: { mode: 'create' | 'edit
           </button>
         )}
       </div>
+
+      <StretchPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addStretches} />
 
       <ConfirmDialog
         open={deleteConfirmOpen}

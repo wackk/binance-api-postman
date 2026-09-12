@@ -14,6 +14,8 @@ import Home from './pages/Home'
 import Climbing from './pages/Climbing'
 import Mobility from './pages/Mobility'
 import MobilityRoutineEditor from './pages/MobilityRoutineEditor'
+import StretchLibrary from './pages/StretchLibrary'
+import StretchDetail from './pages/StretchDetail'
 import Profile from './pages/Profile'
 import ToastContainer from './components/ToastContainer'
 import { useWorkoutStore } from './store/useWorkoutStore'
@@ -64,6 +66,8 @@ function ScreenChrome() {
             <Route path="/mobility" element={<Mobility />} />
             <Route path="/mobility/routine/new" element={<MobilityRoutineEditor mode="create" />} />
             <Route path="/mobility/routine/:routineId" element={<MobilityRoutineEditor mode="edit" />} />
+            <Route path="/stretches" element={<StretchLibrary />} />
+            <Route path="/stretches/:stretchId" element={<StretchDetail />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/workout" replace />} />
           </Routes>

@@ -17,6 +17,7 @@ export type MuscleGroup =
   | 'Neck'
   | 'Adductors'
   | 'Abductors'
+  | 'Finger & Grip'
 
 export type Equipment =
   | 'Barbell'
@@ -151,6 +152,19 @@ export interface MobilityStretch {
   name: string
   durationSeconds: number
   targetArea: string
+}
+
+export type StretchEquipment = 'None' | 'Wall' | 'Strap or Towel' | 'Foam Roller' | 'Chair or Bench' | 'Pull-up Bar' | 'Other'
+
+/** A library stretch — richer than the lightweight MobilityStretch embedded in a routine, with full how-to instructions. */
+export interface Stretch {
+  id: string
+  name: string
+  targetArea: string
+  equipment: StretchEquipment
+  defaultDurationSeconds: number
+  instructions: string[]
+  cue?: string
 }
 
 export interface MobilityRoutine {
