@@ -19,3 +19,17 @@ export function playCelebrationSound(_kind: 'pr' | 'achievement') {
 export function playTimerAlarm() {
   playClip(BOXING_BELL_SOUND)
 }
+
+/** Speaks a short phrase (e.g. "30 seconds") during a mobility stretch countdown. */
+export function speakAnnouncement(text: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  try {
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = 1
+    utterance.volume = 1
+    window.speechSynthesis.speak(utterance)
+  } catch {
+    // ignore — voice announcements are non-essential
+  }
+}

@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react'
+import {
+  Plus, Trash2, Pencil, Sparkles, X, Check, SkipForward, Timer, ClipboardCheck, ChevronRight,
+  ChevronLeft, BookOpen, Play, Pause, RotateCcw, ListChecks, Info,
+} from 'lucide-react'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import { DAILY_AI_ROUTINE } from '../data/mobility'
+import { STRETCH_LIBRARY } from '../data/stretches'
 import type { BodyAreaScore, MobilityRoutine } from '../types'
 import Sheet from '../components/Sheet'
+import StretchAnimation, { hasStretchAnimation } from '../components/StretchAnimation'
 import { useDragScroll } from '../lib/useDragScroll'
-import { relativeDate } from '../lib/format'
+import { relativeDate, formatClockTime } from '../lib/format'
+import { speakAnnouncement } from '../lib/sound'
 
 const DURATION_OPTIONS = [5, 10, 15, 20, 30]
 
@@ -237,20 +243,40 @@ function MobilitySessionSheet({
   onFinish: (durationSeconds: number) => void
   onClose: () => void
 }) {
+  const soundEffectsEnabled = useWorkoutStore((s) => s.settings.soundEffectsEnabled)
   const [index, setIndex] = useState(0)
   const [remaining, setRemaining] = useState(routine.exercises[0]?.durationSeconds ?? 0)
+  const [running, setRunning] = useState(false)
   const [startedAt] = useState(Date.now())
   const current = routine.exercises[index]
+  const libraryMatch = useMemo(() => STRETCH_LIBRARY.find((s) => s.name === current?.name), [current])
 
   useEffect(() => {
     setRemaining(routine.exercises[index]?.durationSeconds ?? 0)
+    setRunning(false)
   }, [index, routine])
 
   useEffect(() => {
+    if (!running || remaining <= 0) return
+    const id = setTimeout(() => setRemaining((r) => Math.max(0, r - 1)), 1000)
+    return () => clearTimeout(id)
+  }, [running, remaining])
+
+  useEffect(() => {
+    if (!soundEffectsEnabled) return
+    if (remaining === 30 || remaining === 10) {
+      speakAnnouncement(`${remaining} seconds`)
+    }
+  }, [remaining, soundEffectsEnabled])
+
+  function toggleRunning() {
     if (remaining <= 0) return
-    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000)
-    return () => clearInterval(id)
-  }, [remaining])
+    setRunning((r) => !r)
+  }
+
+  function restart() {
+    setRemaining(current?.durationSeconds ?? 0)
+  }
 
   function next() {
     if (index + 1 < routine.exercises.length) {
@@ -262,12 +288,9 @@ function MobilitySessionSheet({
 
   if (!current) return null
 
-  const mm = Math.floor(remaining / 60)
-  const ss = (remaining % 60).toString().padStart(2, '0')
-
   return (
     <div className="absolute inset-0 z-40 flex flex-col bg-surface animate-fade-in">
-      <div className="flex items-center justify-between px-4 py-3.5">
+      <div className="flex shrink-0 items-center justify-between px-4 py-3.5">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-400">Active Mobility Session</p>
           <p className="text-base font-bold">{routine.title}</p>
@@ -277,20 +300,75 @@ function MobilitySessionSheet({
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-6">
-        <p className="mb-1 text-xs font-bold text-white/40">
+      <div className="flex-1 overflow-y-auto px-5 pb-4">
+        <p className="mb-1 text-center text-xs font-bold text-white/40">
           Exercise {index + 1} of {routine.exercises.length}
         </p>
-        <p className="mb-1 text-xl font-extrabold">{current.name}</p>
-        <p className="mb-6 text-sm text-white/50">Target: {current.targetArea}</p>
-        <div className="flex h-40 w-40 items-center justify-center rounded-full bg-surface-raised ring-4 ring-emerald-400/30">
-          <span className="text-3xl font-extrabold tabular-nums">
-            {mm}:{ss}
-          </span>
+        <p className="mb-1 text-center text-xl font-extrabold">{current.name}</p>
+        <p className="mb-5 text-center text-sm text-white/50">Target: {current.targetArea}</p>
+
+        <div className="mb-5 flex justify-center">
+          <div
+            className={`flex h-36 w-36 items-center justify-center rounded-full bg-surface-raised ring-4 ${
+              running ? 'ring-emerald-400/30' : 'ring-white/10'
+            }`}
+          >
+            <span className="text-3xl font-extrabold tabular-nums">{formatClockTime(remaining)}</span>
+          </div>
         </div>
+
+        {libraryMatch && hasStretchAnimation(libraryMatch.id) && (
+          <div className="mb-5">
+            <StretchAnimation stretchId={libraryMatch.id} />
+          </div>
+        )}
+
+        {libraryMatch ? (
+          <div className="mb-3">
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold">
+              <ListChecks size={15} className="text-emerald-400" /> How To
+            </p>
+            <ol className="space-y-2">
+              {libraryMatch.instructions.map((step, i) => (
+                <li key={i} className="flex gap-2.5 text-sm text-white/70">
+                  <span className="shrink-0 font-bold text-emerald-400">{i + 1}.</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+            {libraryMatch.cue && (
+              <div className="mt-3 flex gap-2.5 rounded-xl bg-emerald-400/10 p-3 text-xs text-emerald-200/80">
+                <Info size={14} className="mt-0.5 shrink-0 text-emerald-400" />
+                <p>{libraryMatch.cue}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-xs text-white/30">No instructions available for this custom stretch.</p>
+        )}
       </div>
 
-      <div className="space-y-2 px-4 pb-8">
+      <div className="shrink-0 space-y-2.5 border-t border-surface-border px-4 pb-8 pt-3">
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={restart}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-higher text-white/70"
+            aria-label="Restart timer"
+          >
+            <RotateCcw size={17} />
+          </button>
+          <button
+            onClick={toggleRunning}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white"
+            aria-label={running ? 'Pause timer' : 'Start timer'}
+          >
+            {running ? <Pause size={22} fill="white" /> : <Play size={22} fill="white" />}
+          </button>
+          <div className="h-11 w-11" />
+        </div>
+        <p className="text-center text-[11px] text-white/30">
+          {running ? 'Timer running — tap Next anytime to move on.' : 'Read the instructions, then tap play to start the timer.'}
+        </p>
         <button onClick={next} className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-sm font-bold">
           {index + 1 < routine.exercises.length ? (
             <>
@@ -302,9 +380,6 @@ function MobilitySessionSheet({
             </>
           )}
         </button>
-        <div className="flex items-center justify-center gap-1.5 text-xs text-white/30">
-          <Timer size={12} /> Auto-counts down — tap Next anytime to move on
-        </div>
       </div>
     </div>
   )

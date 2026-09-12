@@ -562,6 +562,118 @@ export const STRETCH_LIBRARY: Stretch[] = [
     'Step back into a plank, lower down, then press up into a gentle backbend (cobra).',
     'Push back into downward dog, then walk or hop forward and stand back up. Repeat the flow smoothly.',
   ]),
+  st('deep-squat-hold', 'Deep Squat Hold', 'Ankles', 'None', 60, [
+    'Stand with feet slightly wider than shoulder width, toes turned out slightly.',
+    'Squat down as low as you can, keeping your heels flat on the floor.',
+    'Rest your elbows against the inside of your knees and relax into the position, keeping your chest tall.',
+  ], 'If your heels lift, place something thin under them or narrow your stance slightly.'),
+
+  // ---- Massage Gun Releases ----
+  st('massage-gun-neck', 'Massage Gun: Upper Traps', 'Neck', 'Massage Gun', 30, [
+    'Set the massage gun to its lowest intensity and use a flat or ball head attachment.',
+    'Glide the head slowly over your upper traps and the base of your skull, avoiding your throat and spine directly.',
+    'Keep the gun moving continuously — never hold it still on one spot — for the set time.',
+  ], 'Never use a massage gun directly on the front of the neck, throat, or spine.'),
+  st('massage-gun-shoulders', 'Massage Gun: Deltoids', 'Shoulders', 'Massage Gun', 30, [
+    'Hold the gun with a round head attachment against your shoulder muscle, avoiding the bony point of the shoulder.',
+    'Move slowly across the front, side, and rear deltoid.',
+    'Keep the device moving with light pressure for the set time, then switch sides.',
+  ]),
+  st('massage-gun-chest', 'Massage Gun: Pecs', 'Chest', 'Massage Gun', 30, [
+    'Use a flat head attachment and set a low-to-medium intensity.',
+    'Glide the gun across your chest muscle, avoiding your sternum (breastbone) and any bony areas.',
+    'Move slowly across the muscle for the set time, then switch sides.',
+  ]),
+  st('massage-gun-upper-back', 'Massage Gun: Upper Back', 'Upper Back', 'Massage Gun', 30, [
+    'Use a flat or round head attachment.',
+    'Glide the device across the muscles beside your spine, never directly on the spine itself.',
+    'Cover the area between your shoulder blades and upper traps for the set time.',
+  ]),
+  st('massage-gun-lats', 'Massage Gun: Lats', 'Lats', 'Massage Gun', 30, [
+    'Raise your arm overhead to expose your lat muscle along your side ribs.',
+    'Glide the gun slowly along the muscle from your armpit down toward your lower back.',
+    'Keep moving with moderate pressure for the set time, then switch sides.',
+  ]),
+  st('massage-gun-triceps', 'Massage Gun: Triceps', 'Triceps', 'Massage Gun', 30, [
+    'Extend your arm and relax the muscle.',
+    'Glide the gun along the back of your upper arm, avoiding the elbow joint.',
+    'Cover the full length of the triceps for the set time, then switch sides.',
+  ]),
+  st('massage-gun-biceps', 'Massage Gun: Biceps', 'Biceps', 'Massage Gun', 30, [
+    'Relax your arm at your side or rest it on a table.',
+    'Glide the gun along the front of your upper arm, avoiding the inner elbow crease.',
+    'Move slowly up and down the muscle for the set time, then switch sides.',
+  ]),
+  st('massage-gun-forearms', 'Massage Gun: Forearms', 'Forearms', 'Massage Gun', 30, [
+    'Rest your forearm on a table, palm up.',
+    'Glide the gun slowly along your forearm muscles, avoiding the wrist joint.',
+    'Flip your arm over and repeat, then switch to the other forearm.',
+  ]),
+  st('massage-gun-grip', 'Massage Gun: Forearm & Grip Release', 'Finger & Grip', 'Massage Gun', 30, [
+    'Use a small bullet attachment if available, otherwise a flat head on low intensity.',
+    'Focus on the forearm muscles that control your fingers, just below the elbow.',
+    'Move slowly and avoid direct pressure on finger or wrist joints, then switch arms.',
+  ]),
+  st('massage-gun-abs', 'Massage Gun: Abdominals', 'Abs', 'Massage Gun', 30, [
+    'Use light pressure and a low intensity setting.',
+    'Glide the gun gently across your abdominal muscles, keeping pressure light over the midline.',
+    'Move slowly for the set time, stopping if you feel any discomfort.',
+  ]),
+  st('massage-gun-obliques', 'Massage Gun: Obliques', 'Obliques', 'Massage Gun', 30, [
+    'Lie on your side or stand tall.',
+    'Glide the gun along your side body between your ribs and hips.',
+    'Use light-to-moderate pressure for the set time, then switch sides.',
+  ]),
+  st('massage-gun-lower-back', 'Massage Gun: Lower Back', 'Lower Back', 'Massage Gun', 30, [
+    'Use a flat attachment and stand or lie on your side.',
+    'Glide the gun along the muscles beside your spine, never directly on the spine or kidney area.',
+    'Keep moving continuously at low-to-moderate intensity for the set time.',
+  ], 'Stay off the spine itself — work the muscle on either side of it.'),
+  st('massage-gun-glutes', 'Massage Gun: Glutes', 'Glutes', 'Massage Gun', 30, [
+    'Stand or lie on your side and relax the muscle.',
+    'Glide the gun across your glute muscles — this dense area tolerates moderate-to-high intensity.',
+    'Cover the full area for the set time, then switch sides.',
+  ]),
+  st('massage-gun-hip-flexors', 'Massage Gun: Hip Flexors', 'Hip Flexors', 'Massage Gun', 30, [
+    'Lie on your stomach or stand and relax your hip.',
+    'Glide the gun across the front of your hip, just below your hip bone.',
+    'Use moderate intensity and keep moving for the set time, then switch sides.',
+  ]),
+  st('massage-gun-adductors', 'Massage Gun: Inner Thigh', 'Adductors', 'Massage Gun', 30, [
+    'Sit or lie with your knee bent out to the side to expose your inner thigh.',
+    'Glide the gun along the inner thigh muscles, avoiding the groin area directly.',
+    'Use light-to-moderate pressure for the set time, then switch legs.',
+  ]),
+  st('massage-gun-abductors', 'Massage Gun: Outer Thigh / IT Band', 'Abductors', 'Massage Gun', 30, [
+    'Lie on your side or stand.',
+    'Glide the gun along your outer thigh from hip to knee.',
+    'Use moderate intensity since this area tolerates more pressure, then switch sides.',
+  ]),
+  st('massage-gun-quads', 'Massage Gun: Quads', 'Quadriceps', 'Massage Gun', 30, [
+    'Sit or stand with your leg relaxed.',
+    'Glide the gun across your thigh muscles, avoiding the kneecap directly.',
+    'Cover the full length of the quad for the set time, then switch legs.',
+  ]),
+  st('massage-gun-hamstrings', 'Massage Gun: Hamstrings', 'Hamstrings', 'Massage Gun', 30, [
+    'Sit or lie face down with your leg relaxed.',
+    'Glide the gun along the back of your thigh, avoiding the back of the knee.',
+    'Use moderate intensity for the set time, then switch legs.',
+  ]),
+  st('massage-gun-calves', 'Massage Gun: Calves', 'Calves', 'Massage Gun', 30, [
+    'Sit with your leg extended and relaxed.',
+    'Glide the gun along your calf muscle, avoiding the Achilles tendon and the back of the knee.',
+    'Use light-to-moderate intensity for the set time, then switch legs.',
+  ]),
+  st('massage-gun-feet', 'Massage Gun: Foot & Arch', 'Ankles', 'Massage Gun', 30, [
+    'Use a low intensity setting and a soft head attachment if available.',
+    'Glide the gun gently along the arch and sole of your foot, avoiding bones directly.',
+    'Keep pressure light for the set time, then switch feet.',
+  ]),
+  st('massage-gun-full-body', 'Massage Gun: Full-Body Flow', 'Full Body', 'Massage Gun', 45, [
+    'Starting at your calves, spend about 20-30 seconds gliding the gun up each major muscle group.',
+    'Move through calves, quads, glutes, lower back, upper back, and shoulders in sequence.',
+    'Keep the gun moving continuously and avoid all joints and bones throughout.',
+  ]),
 ]
 
 export const STRETCH_TARGET_AREAS: string[] = [

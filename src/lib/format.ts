@@ -52,6 +52,7 @@ const STRETCH_EQUIPMENT_ICONS: Record<StretchEquipment, string> = {
   'Foam Roller': '🧻',
   'Chair or Bench': '🪑',
   'Pull-up Bar': '🧗',
+  'Massage Gun': '📳',
   Other: '🧩',
 }
 

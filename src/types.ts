@@ -154,7 +154,7 @@ export interface MobilityStretch {
   targetArea: string
 }
 
-export type StretchEquipment = 'None' | 'Wall' | 'Strap or Towel' | 'Foam Roller' | 'Chair or Bench' | 'Pull-up Bar' | 'Other'
+export type StretchEquipment = 'None' | 'Wall' | 'Strap or Towel' | 'Foam Roller' | 'Chair or Bench' | 'Pull-up Bar' | 'Massage Gun' | 'Other'
 
 /** A library stretch — richer than the lightweight MobilityStretch embedded in a routine, with full how-to instructions. */
 export interface Stretch {

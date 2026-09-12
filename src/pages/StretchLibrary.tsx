@@ -8,7 +8,7 @@ import { useDragScroll } from '../lib/useDragScroll'
 import type { Stretch, StretchEquipment } from '../types'
 
 const STRETCH_EQUIPMENT_TYPES: StretchEquipment[] = [
-  'None', 'Wall', 'Strap or Towel', 'Foam Roller', 'Chair or Bench', 'Pull-up Bar', 'Other',
+  'None', 'Wall', 'Strap or Towel', 'Foam Roller', 'Chair or Bench', 'Pull-up Bar', 'Massage Gun', 'Other',
 ]
 
 export default function StretchLibrary() {

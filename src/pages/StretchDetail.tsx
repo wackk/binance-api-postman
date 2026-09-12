@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ListChecks, Timer, Info } from 'lucide-react'
 import { STRETCH_LIBRARY } from '../data/stretches'
 import { stretchAreaColor, stretchEquipmentIcon, formatClockTime } from '../lib/format'
+import StretchAnimation, { hasStretchAnimation } from '../components/StretchAnimation'
 
 export default function StretchDetail() {
   const navigate = useNavigate()
@@ -55,6 +56,12 @@ export default function StretchDetail() {
           <span className="text-sm font-bold">Hold for {formatClockTime(stretch.defaultDurationSeconds)}</span>
           <span className="text-xs text-white/40">(per side if applicable)</span>
         </div>
+
+        {hasStretchAnimation(stretch.id) && (
+          <div className="mb-6">
+            <StretchAnimation stretchId={stretch.id} />
+          </div>
+        )}
 
         <div className="mb-6">
           <div className="mb-2 flex items-center gap-1.5 text-sm font-bold">

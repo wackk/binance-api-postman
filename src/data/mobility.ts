@@ -18,9 +18,10 @@ export const DAILY_AI_ROUTINE: MobilityRoutine = {
   isCustom: false,
   exercises: [
     { name: 'Deep Squat Hold', durationSeconds: 120, targetArea: 'Ankles & Hips' },
-    { name: 'Doorway Chest & Lats Opener', durationSeconds: 120, targetArea: 'Shoulders' },
-    { name: 'Pigeon Pose Stretch', durationSeconds: 180, targetArea: 'Hips' },
-    { name: 'Thoracic Spine Rotations', durationSeconds: 120, targetArea: 'T-Spine' },
+    { name: 'Wall Shoulder Flexion Stretch', durationSeconds: 120, targetArea: 'Shoulders' },
+    { name: 'Massage Gun: Deltoids', durationSeconds: 45, targetArea: 'Shoulders' },
+    { name: 'Pigeon Pose', durationSeconds: 180, targetArea: 'Hips' },
+    { name: 'Open Book (Thoracic Rotation)', durationSeconds: 120, targetArea: 'T-Spine' },
     { name: 'Couch Stretch', durationSeconds: 180, targetArea: 'Quads & Hip Flexors' },
   ],
 }
